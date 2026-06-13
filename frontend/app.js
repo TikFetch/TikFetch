@@ -244,19 +244,23 @@ const bufferToBase64Url = (buffer) => {
     return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
 };
 
+const publicKeyOptions = (options) => options.publicKey || options;
+
 const parseCreationOptions = (options) => {
+    const publicKey = publicKeyOptions(options);
+
     if (PublicKeyCredential.parseCreationOptionsFromJSON) {
-        return PublicKeyCredential.parseCreationOptionsFromJSON(options);
+        return PublicKeyCredential.parseCreationOptionsFromJSON(publicKey);
     }
 
     return {
-        ...options,
-        challenge: base64UrlToBuffer(options.challenge),
+        ...publicKey,
+        challenge: base64UrlToBuffer(publicKey.challenge),
         user: {
-            ...options.user,
-            id: base64UrlToBuffer(options.user.id),
+            ...publicKey.user,
+            id: base64UrlToBuffer(publicKey.user.id),
         },
-        excludeCredentials: options.excludeCredentials?.map((credential) => ({
+        excludeCredentials: publicKey.excludeCredentials?.map((credential) => ({
             ...credential,
             id: base64UrlToBuffer(credential.id),
         })),
@@ -264,14 +268,16 @@ const parseCreationOptions = (options) => {
 };
 
 const parseRequestOptions = (options) => {
+    const publicKey = publicKeyOptions(options);
+
     if (PublicKeyCredential.parseRequestOptionsFromJSON) {
-        return PublicKeyCredential.parseRequestOptionsFromJSON(options);
+        return PublicKeyCredential.parseRequestOptionsFromJSON(publicKey);
     }
 
     return {
-        ...options,
-        challenge: base64UrlToBuffer(options.challenge),
-        allowCredentials: options.allowCredentials?.map((credential) => ({
+        ...publicKey,
+        challenge: base64UrlToBuffer(publicKey.challenge),
+        allowCredentials: publicKey.allowCredentials?.map((credential) => ({
             ...credential,
             id: base64UrlToBuffer(credential.id),
         })),
