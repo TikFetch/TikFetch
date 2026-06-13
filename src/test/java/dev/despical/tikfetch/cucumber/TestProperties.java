@@ -22,6 +22,11 @@ import dev.despical.tikfetch.config.AppProperties;
 
 import java.nio.file.Path;
 
+/**
+ * @author Despical
+ * <p>
+ * Created at 13.06.2026
+ */
 final class TestProperties {
 
     private TestProperties() {

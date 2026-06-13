@@ -32,6 +32,11 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+/**
+ * @author Despical
+ * <p>
+ * Created at 13.06.2026
+ */
 @Component
 @RequiredArgsConstructor
 public class AdminPasskeyCredentialRepository implements CredentialRepository {

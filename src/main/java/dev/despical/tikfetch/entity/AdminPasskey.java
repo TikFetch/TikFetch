@@ -36,6 +36,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * @author Despical
+ * <p>
+ * Created at 13.06.2026
+ */
 @Getter
 @Setter
 @NoArgsConstructor

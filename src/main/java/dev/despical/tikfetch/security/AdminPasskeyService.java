@@ -51,6 +51,11 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * @author Despical
+ * <p>
+ * Created at 13.06.2026
+ */
 @Service
 @RequiredArgsConstructor
 public class AdminPasskeyService {
@@ -91,6 +96,7 @@ public class AdminPasskeyService {
         try {
             PublicKeyCredentialCreationOptions request = PublicKeyCredentialCreationOptions.fromJson(requestJson);
             var response = PublicKeyCredential.parseRegistrationResponseJson(credentialJson);
+
             RegistrationResult result = relyingParty().finishRegistration(FinishRegistrationOptions.builder()
                 .request(request)
                 .response(response)
@@ -117,6 +123,7 @@ public class AdminPasskeyService {
         try {
             AssertionRequest request = AssertionRequest.fromJson(requestJson);
             var response = PublicKeyCredential.parseAssertionResponseJson(credentialJson);
+
             AssertionResult result = relyingParty().finishAssertion(FinishAssertionOptions.builder()
                 .request(request)
                 .response(response)

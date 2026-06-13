@@ -25,6 +25,11 @@ import io.cucumber.java.en.When;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * @author Despical
+ * <p>
+ * Created at 13.06.2026
+ */
 public class TikTokUrlSteps {
 
     private final TikTokUrlValidator validator = new TikTokUrlValidator();

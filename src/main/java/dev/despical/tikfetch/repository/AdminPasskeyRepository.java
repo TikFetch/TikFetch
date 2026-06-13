@@ -26,6 +26,11 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+/**
+ * @author Despical
+ * <p>
+ * Created at 13.06.2026
+ */
 public interface AdminPasskeyRepository extends JpaRepository<AdminPasskey, Long> {
 
     List<AdminPasskey> findAllByAdminOrderByCreatedAtDesc(Admin admin);

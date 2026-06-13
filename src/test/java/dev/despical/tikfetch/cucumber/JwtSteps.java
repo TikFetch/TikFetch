@@ -27,6 +27,11 @@ import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * @author Despical
+ * <p>
+ * Created at 13.06.2026
+ */
 public class JwtSteps {
 
     private final JwtTokenService tokenService = new JwtTokenService(TestProperties.withStorage(Path.of("build/test-storage")));

@@ -33,6 +33,11 @@ import java.util.Comparator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * @author Despical
+ * <p>
+ * Created at 13.06.2026
+ */
 public class StorageSteps {
 
     private Path storageDirectory;

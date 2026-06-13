@@ -28,6 +28,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+/**
+ * @author Despical
+ * <p>
+ * Created at 12.06.2026
+ */
 public record AdminPrincipal(Admin admin) implements UserDetails {
 
     @Override
