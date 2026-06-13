@@ -22,6 +22,21 @@ description = 'A clean TikTok media downloader for videos, photo posts, and gall
 
 def npmCommand = System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows') ? 'npm.cmd' : 'npm'
 def testRuntimeRoot = providers.systemProperty('java.io.tmpdir').map { new File(it, "tikfetch-test-runtime/${rootProject.name}") }
+def localEnvFile = file('.env')
+
+def localEnv = providers.provider {
+    if (!localEnvFile.exists()) {
+        return [:]
+    }
+
+    localEnvFile.readLines()
+        .collect { it.trim() }
+        .findAll { it && !it.startsWith('#') && it.contains('=') }
+        .collectEntries { line ->
+            def separator = line.indexOf('=')
+            [(line.substring(0, separator)): line.substring(separator + 1)]
+        }
+}
 
 java {
     toolchain {
@@ -132,10 +147,18 @@ tasks.named('processResources') {
     dependsOn 'buildFrontend'
 }
 
+tasks.named('bootRun') {
+    environment localEnv.get()
+}
+
 flyway {
     def flywayUrl = providers.gradleProperty('flywayUrl').orElse(providers.environmentVariable('FLYWAY_URL')).orNull
     def flywayUser = providers.gradleProperty('flywayUser').orElse(providers.environmentVariable('FLYWAY_USER')).orNull
     def flywayPassword = providers.gradleProperty('flywayPassword').orElse(providers.environmentVariable('FLYWAY_PASSWORD')).orNull
+    def flywayCleanDisabled = providers.gradleProperty('flywayCleanDisabled')
+        .orElse(providers.gradleProperty('flyway.cleanDisabled'))
+        .orElse(providers.environmentVariable('FLYWAY_CLEAN_DISABLED'))
+        .orNull
 
     if (flywayUrl != null) {
         url = flywayUrl
@@ -147,5 +170,9 @@ flyway {
 
     if (flywayPassword != null) {
         password = flywayPassword
+    }
+
+    if (flywayCleanDisabled != null) {
+        cleanDisabled = flywayCleanDisabled.toBoolean()
     }
 }

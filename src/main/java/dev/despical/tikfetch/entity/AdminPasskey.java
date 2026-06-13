@@ -55,15 +55,15 @@ public class AdminPasskey {
     private String label;
 
     @Lob
-    @Column(nullable = false, name = "credential_id")
+    @Column(nullable = false, name = "credential_id", columnDefinition = "BLOB")
     private byte[] credentialId;
 
     @Lob
-    @Column(nullable = false, name = "user_handle")
+    @Column(nullable = false, name = "user_handle", columnDefinition = "BLOB")
     private byte[] userHandle;
 
     @Lob
-    @Column(nullable = false, name = "public_key_cose")
+    @Column(nullable = false, name = "public_key_cose", columnDefinition = "BLOB")
     private byte[] publicKeyCose;
 
     @Column(nullable = false, name = "signature_count")
