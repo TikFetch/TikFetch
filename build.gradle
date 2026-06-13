@@ -7,9 +7,10 @@ plugins {
 
 group = 'dev.despical'
 version = '1.0.0'
-description = 'TikFetch TikTok video downloader'
+description = 'A clean TikTok media downloader for videos, photo posts, and galleries'
 
 def npmCommand = System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows') ? 'npm.cmd' : 'npm'
+def testRuntimeRoot = providers.systemProperty('java.io.tmpdir').map { new File(it, "tikfetch-test-runtime/${rootProject.name}") }
 
 java {
     toolchain {
@@ -52,31 +53,48 @@ dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'io.cucumber:cucumber-java:7.31.0'
+    testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.31.0'
+    testImplementation 'org.junit.platform:junit-platform-suite'
+
     testRuntimeOnly 'com.h2database:h2'
 }
 
 tasks.named('test') {
-    useJUnit()
-    exclude '**/*Test.class'
+    useJUnitPlatform()
+    dependsOn 'syncTestRuntime'
 
-    dependsOn 'runUnitTests'
+    testClassesDirs = files(testRuntimeRoot.map { new File(it, 'test-classes') })
+    classpath = files(
+        testRuntimeRoot.map { new File(it, 'test-classes') },
+        testRuntimeRoot.map { new File(it, 'test-resources') },
+        testRuntimeRoot.map { new File(it, 'main-classes') },
+        testRuntimeRoot.map { new File(it, 'main-resources') }
+    ) + configurations.testRuntimeClasspath
+
+    include '**/CucumberTest.class'
 }
 
-tasks.register('runUnitTests', JavaExec) {
-    group = 'verification'
-    description = 'Runs TikFetch unit tests with JUnitCore.'
-
+tasks.register('syncTestRuntime', Sync) {
     dependsOn 'testClasses'
 
-    classpath = sourceSets.test.runtimeClasspath
-    mainClass = 'org.junit.runner.JUnitCore'
+    into testRuntimeRoot
 
-    args = [
-        'dev.despical.tikfetch.validation.TikTokUrlValidatorTest',
-        'dev.despical.tikfetch.storage.LocalFileStorageServiceTest',
-        'dev.despical.tikfetch.security.JwtTokenServiceTest'
-    ]
+    into('test-classes') {
+        from sourceSets.test.output.classesDirs
+    }
+
+    into('test-resources') {
+        from sourceSets.test.output.resourcesDir
+    }
+
+    into('main-classes') {
+        from sourceSets.main.output.classesDirs
+    }
+
+    into('main-resources') {
+        from sourceSets.main.output.resourcesDir
+    }
 }
 
 tasks.register('npmInstall', Exec) {
