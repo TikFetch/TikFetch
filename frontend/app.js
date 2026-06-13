@@ -318,10 +318,31 @@ const postJson = async (url, csrfToken, body = {}) => {
     });
 
     if (!response.ok) {
-        throw new Error('The passkey request could not be completed.');
+        let message = 'The passkey request could not be completed.';
+
+        try {
+            const data = await response.json();
+            message = data.message || message;
+        } catch {
+            // Keep the generic message when the server does not return JSON.
+        }
+
+        throw new Error(message);
     }
 
     return response.json();
+};
+
+const passkeyErrorMessage = (error, fallback) => {
+    if (error?.name === 'NotAllowedError') {
+        return 'Passkey verification was cancelled or timed out.';
+    }
+
+    if (error?.name === 'AbortError') {
+        return 'Passkey verification was cancelled.';
+    }
+
+    return error?.message || fallback;
 };
 
 const showPasskeyMessage = (selector, message, success = false) => {
@@ -355,7 +376,10 @@ passkeyLoginButton?.addEventListener('click', async () => {
 
         window.location.assign(result.redirect || '/admin');
     } catch (error) {
-        showPasskeyMessage('[data-passkey-login-message]', error.message || 'Passkey sign-in failed.');
+        showPasskeyMessage(
+            '[data-passkey-login-message]',
+            passkeyErrorMessage(error, 'Passkey sign-in failed.')
+        );
     } finally {
         passkeyLoginButton.disabled = false;
         passkeyLoginButton.textContent = originalText;
@@ -386,7 +410,10 @@ passkeyRegisterButton?.addEventListener('click', async () => {
         showPasskeyMessage('[data-passkey-register-message]', 'Passkey added successfully.', true);
         window.location.assign(result.redirect || '/admin/security');
     } catch (error) {
-        showPasskeyMessage('[data-passkey-register-message]', error.message || 'Could not add this passkey.');
+        showPasskeyMessage(
+            '[data-passkey-register-message]',
+            passkeyErrorMessage(error, 'Could not add this passkey.')
+        );
     } finally {
         passkeyRegisterButton.disabled = false;
         passkeyRegisterButton.textContent = originalText;

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.despical.tikfetch.dto.AdminVideoView;
 import dev.despical.tikfetch.dto.AttemptView;
+import dev.despical.tikfetch.entity.Admin;
 import dev.despical.tikfetch.entity.DownloadedVideo;
 import dev.despical.tikfetch.form.LoginForm;
 import dev.despical.tikfetch.repository.DownloadAttemptRepository;
@@ -48,9 +49,11 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -153,21 +156,25 @@ public class AdminController {
 
     @PostMapping(value = "/passkeys/login", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public Map<String, String> finishPasskeyLogin(
+    public ResponseEntity<Map<String, String>> finishPasskeyLogin(
         @RequestBody
         String payload,
         HttpSession session,
         HttpServletResponse response
-    ) throws IOException {
-        String requestJson = requiredSessionString(session, PASSKEY_ASSERTION_OPTIONS);
-        String credentialJson = credentialJson(payload);
+    ) {
+        try {
+            String requestJson = requiredSessionString(session, PASSKEY_ASSERTION_OPTIONS);
+            String credentialJson = credentialJson(payload);
 
-        var admin = passkeyService.finishLogin(requestJson, credentialJson);
-        AuthTokens tokens = authService.issueTokens(admin);
-        cookieService.writeAuthCookies(response, tokens);
-        session.removeAttribute(PASSKEY_ASSERTION_OPTIONS);
+            var admin = passkeyService.finishLogin(requestJson, credentialJson);
+            AuthTokens tokens = authService.issueTokens(admin);
+            cookieService.writeAuthCookies(response, tokens);
+            session.removeAttribute(PASSKEY_ASSERTION_OPTIONS);
 
-        return Map.of("redirect", "/admin");
+            return ResponseEntity.ok(Map.of("redirect", "/admin"));
+        } catch (BadCredentialsException | IOException exception) {
+            return passkeyError("Passkey sign-in failed. Please try again.");
+        }
     }
 
     @GetMapping
@@ -243,20 +250,24 @@ public class AdminController {
 
     @PostMapping(value = "/passkeys/register", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public Map<String, String> finishPasskeyRegistration(
+    public ResponseEntity<Map<String, String>> finishPasskeyRegistration(
         @RequestBody
         String payload,
         Authentication authentication,
         HttpSession session
-    ) throws IOException {
-        String requestJson = requiredSessionString(session, PASSKEY_REGISTRATION_OPTIONS);
-        String label = (String) session.getAttribute(PASSKEY_REGISTRATION_LABEL);
-        passkeyService.finishRegistration(currentAdmin(authentication), requestJson, credentialJson(payload), label);
+    ) {
+        try {
+            String requestJson = requiredSessionString(session, PASSKEY_REGISTRATION_OPTIONS);
+            String label = (String) session.getAttribute(PASSKEY_REGISTRATION_LABEL);
+            passkeyService.finishRegistration(currentAdmin(authentication), requestJson, credentialJson(payload), label);
 
-        session.removeAttribute(PASSKEY_REGISTRATION_OPTIONS);
-        session.removeAttribute(PASSKEY_REGISTRATION_LABEL);
+            session.removeAttribute(PASSKEY_REGISTRATION_OPTIONS);
+            session.removeAttribute(PASSKEY_REGISTRATION_LABEL);
 
-        return Map.of("redirect", "/admin/security");
+            return ResponseEntity.ok(Map.of("redirect", "/admin/security"));
+        } catch (BadCredentialsException | IOException exception) {
+            return passkeyError("Could not add this passkey. Please try again.");
+        }
     }
 
     @PostMapping("/passkeys/{id}/delete")
@@ -285,12 +296,12 @@ public class AdminController {
             .toList();
     }
 
-    private dev.despical.tikfetch.entity.Admin currentAdmin(Authentication authentication) {
-        if (authentication == null || !(authentication.getPrincipal() instanceof AdminPrincipal principal)) {
+    private Admin currentAdmin(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof AdminPrincipal(Admin admin))) {
             throw new BadCredentialsException("Admin authentication is required.");
         }
 
-        return principal.admin();
+        return admin;
     }
 
     private String requiredSessionString(HttpSession session, String name) {
@@ -313,5 +324,9 @@ public class AdminController {
 
     private String label(String payload) throws IOException {
         return objectMapper.readTree(payload).path("label").asText("Passkey");
+    }
+
+    private ResponseEntity<Map<String, String>> passkeyError(String message) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", message));
     }
 }
