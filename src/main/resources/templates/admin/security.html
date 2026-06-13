@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('Security', ~{::content})}">
+<main th:fragment="content">
+    <div th:replace="~{fragments/admin-shell :: shell('security', ~{::panel})}">
+        <div th:fragment="panel" class="space-y-6">
+            <div>
+                <h1 class="text-2xl font-semibold text-slate-950">Security</h1>
+                <p class="text-sm text-slate-600">Manage admin sign-in methods for this TikFetch instance.</p>
+            </div>
+
+            <section class="rounded-lg border border-slate-200 bg-white">
+                <div class="border-b border-slate-200 px-4 py-4">
+                    <h2 class="font-semibold text-slate-950">Passkeys</h2>
+                    <p class="mt-1 text-sm text-slate-600">
+                        Add a passkey to sign in with Windows Hello, a security key, or another platform authenticator.
+                    </p>
+                </div>
+                <div class="space-y-4 p-4">
+                    <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+                        <div>
+                            <label for="passkey-label" class="mb-2 block text-sm font-medium text-slate-900">Passkey label</label>
+                            <input id="passkey-label" value="Windows Hello" maxlength="120"
+                                   class="w-full rounded-md border border-slate-300 px-3 py-2 outline-none focus:border-slate-950">
+                        </div>
+                        <button type="button"
+                                data-passkey-register
+                                data-label-input="passkey-label"
+                                data-options-url="/admin/passkeys/register/options"
+                                data-finish-url="/admin/passkeys/register"
+                                th:data-csrf-token="${_csrf.token}"
+                                class="self-end rounded-md bg-slate-950 px-4 py-2 font-semibold text-white hover:bg-slate-800">
+                            Add passkey
+                        </button>
+                    </div>
+                    <p data-passkey-register-message class="hidden rounded-md px-3 py-2 text-sm"></p>
+
+                    <div th:if="${#lists.isEmpty(passkeys)}"
+                         class="rounded-md border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-600">
+                        No passkeys have been added yet.
+                    </div>
+
+                    <div th:if="${!#lists.isEmpty(passkeys)}" class="overflow-hidden rounded-md border border-slate-200">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                            <tr>
+                                <th class="px-4 py-3">Label</th>
+                                <th class="px-4 py-3">Created</th>
+                                <th class="px-4 py-3">Last used</th>
+                                <th class="px-4 py-3 text-right">Action</th>
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200">
+                            <tr th:each="passkey : ${passkeys}">
+                                <td class="px-4 py-3 font-medium text-slate-950" th:text="${passkey.label}">Windows Hello</td>
+                                <td class="px-4 py-3 text-slate-600"
+                                    th:text="${#temporals.format(passkey.createdAt, 'dd/MM/yyyy HH:mm')}">13/06/2026 16:00</td>
+                                <td class="px-4 py-3 text-slate-600"
+                                    th:text="${passkey.lastUsedAt == null ? 'Never' : #temporals.format(passkey.lastUsedAt, 'dd/MM/yyyy HH:mm')}">Never</td>
+                                <td class="px-4 py-3 text-right">
+                                    <form th:action="@{/admin/passkeys/{id}/delete(id=${passkey.id})}" method="post">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <button class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700">
+                                            Remove
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</main>
+</html>

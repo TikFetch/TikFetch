@@ -62,6 +62,15 @@ public class AdminAuthService {
     }
 
     @Transactional
+    public AuthTokens issueTokens(Admin admin) {
+        if (admin == null || !admin.isEnabled()) {
+            throw new BadCredentialsException("Admin account is disabled.");
+        }
+
+        return createTokens(admin);
+    }
+
+    @Transactional
     public AuthTokens refresh(String rawRefreshToken) {
         if (rawRefreshToken == null || rawRefreshToken.isBlank()) {
             throw new BadCredentialsException("Missing refresh token.");

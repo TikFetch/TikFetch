@@ -56,6 +56,8 @@ public class SecurityConfig {
                     "/favicon.ico",
                     "/admin/login",
                     "/admin/refresh",
+                    "/admin/passkeys/login/options",
+                    "/admin/passkeys/login",
                     "/error"
                 ).permitAll()
                 .requestMatchers("/actuator/health/**").permitAll()

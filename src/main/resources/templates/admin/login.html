@@ -32,6 +32,17 @@
                 in
             </button>
         </form>
+        <div class="mt-5 border-t border-slate-200 pt-5">
+            <button type="button"
+                    data-passkey-login
+                    data-options-url="/admin/passkeys/login/options"
+                    data-finish-url="/admin/passkeys/login"
+                    th:data-csrf-token="${_csrf.token}"
+                    class="w-full rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50">
+                Sign in with passkey
+            </button>
+            <p data-passkey-login-message class="mt-3 hidden text-sm text-red-600"></p>
+        </div>
     </div>
 </main>
 </html>

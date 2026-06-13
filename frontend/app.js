@@ -4,6 +4,8 @@ const downloadForms = document.querySelectorAll('[data-download-form]');
 const inputWraps = document.querySelectorAll('[data-clipboard-input]');
 const scrollTopButton = document.querySelector('[data-scroll-top]');
 const galleryViewers = document.querySelectorAll('[data-gallery-viewer]');
+const passkeyLoginButton = document.querySelector('[data-passkey-login]');
+const passkeyRegisterButton = document.querySelector('[data-passkey-register]');
 
 downloadForms.forEach((downloadForm) => {
     downloadForm.addEventListener('submit', async (event) => {
@@ -214,4 +216,173 @@ galleryViewers.forEach((viewer) => {
     });
 
     render();
+});
+
+const supportsPasskeys = () => window.PublicKeyCredential && navigator.credentials;
+
+const base64UrlToBuffer = (value) => {
+    const base64 = value.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(value.length / 4) * 4, '=');
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+
+    for (let i = 0; i < binary.length; i += 1) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+
+    return bytes.buffer;
+};
+
+const bufferToBase64Url = (buffer) => {
+    if (!buffer) return undefined;
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+
+    bytes.forEach((byte) => {
+        binary += String.fromCharCode(byte);
+    });
+
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+};
+
+const parseCreationOptions = (options) => {
+    if (PublicKeyCredential.parseCreationOptionsFromJSON) {
+        return PublicKeyCredential.parseCreationOptionsFromJSON(options);
+    }
+
+    return {
+        ...options,
+        challenge: base64UrlToBuffer(options.challenge),
+        user: {
+            ...options.user,
+            id: base64UrlToBuffer(options.user.id),
+        },
+        excludeCredentials: options.excludeCredentials?.map((credential) => ({
+            ...credential,
+            id: base64UrlToBuffer(credential.id),
+        })),
+    };
+};
+
+const parseRequestOptions = (options) => {
+    if (PublicKeyCredential.parseRequestOptionsFromJSON) {
+        return PublicKeyCredential.parseRequestOptionsFromJSON(options);
+    }
+
+    return {
+        ...options,
+        challenge: base64UrlToBuffer(options.challenge),
+        allowCredentials: options.allowCredentials?.map((credential) => ({
+            ...credential,
+            id: base64UrlToBuffer(credential.id),
+        })),
+    };
+};
+
+const credentialToJson = (credential) => {
+    if (credential.toJSON) {
+        return credential.toJSON();
+    }
+
+    const response = credential.response;
+    return {
+        id: credential.id,
+        rawId: bufferToBase64Url(credential.rawId),
+        type: credential.type,
+        authenticatorAttachment: credential.authenticatorAttachment,
+        clientExtensionResults: credential.getClientExtensionResults(),
+        response: {
+            attestationObject: bufferToBase64Url(response.attestationObject),
+            authenticatorData: bufferToBase64Url(response.authenticatorData),
+            clientDataJSON: bufferToBase64Url(response.clientDataJSON),
+            signature: bufferToBase64Url(response.signature),
+            userHandle: bufferToBase64Url(response.userHandle),
+        },
+    };
+};
+
+const postJson = async (url, csrfToken, body = {}) => {
+    const response = await fetch(url, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+        },
+        body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+        throw new Error('The passkey request could not be completed.');
+    }
+
+    return response.json();
+};
+
+const showPasskeyMessage = (selector, message, success = false) => {
+    const element = document.querySelector(selector);
+    if (!element) return;
+    element.textContent = message;
+    element.classList.remove('hidden', 'text-red-600', 'text-emerald-700', 'bg-red-50', 'bg-emerald-50');
+    element.classList.add(success ? 'text-emerald-700' : 'text-red-600');
+    if (selector.includes('register')) {
+        element.classList.add(success ? 'bg-emerald-50' : 'bg-red-50');
+    }
+};
+
+passkeyLoginButton?.addEventListener('click', async () => {
+    if (!supportsPasskeys()) {
+        showPasskeyMessage('[data-passkey-login-message]', 'This browser does not support passkeys yet.');
+        return;
+    }
+
+    passkeyLoginButton.disabled = true;
+    const originalText = passkeyLoginButton.textContent;
+    passkeyLoginButton.textContent = 'Waiting for passkey';
+
+    try {
+        const options = await postJson(passkeyLoginButton.dataset.optionsUrl, passkeyLoginButton.dataset.csrfToken);
+        const publicKey = parseRequestOptions(options);
+        const credential = await navigator.credentials.get({publicKey});
+        const result = await postJson(passkeyLoginButton.dataset.finishUrl, passkeyLoginButton.dataset.csrfToken, {
+            credential: credentialToJson(credential),
+        });
+
+        window.location.assign(result.redirect || '/admin');
+    } catch (error) {
+        showPasskeyMessage('[data-passkey-login-message]', error.message || 'Passkey sign-in failed.');
+    } finally {
+        passkeyLoginButton.disabled = false;
+        passkeyLoginButton.textContent = originalText;
+    }
+});
+
+passkeyRegisterButton?.addEventListener('click', async () => {
+    if (!supportsPasskeys()) {
+        showPasskeyMessage('[data-passkey-register-message]', 'This browser does not support passkeys yet.');
+        return;
+    }
+
+    const labelInput = document.getElementById(passkeyRegisterButton.dataset.labelInput);
+    const label = labelInput?.value?.trim() || 'Passkey';
+    const originalText = passkeyRegisterButton.textContent;
+    passkeyRegisterButton.disabled = true;
+    passkeyRegisterButton.textContent = 'Waiting for passkey';
+
+    try {
+        const options = await postJson(passkeyRegisterButton.dataset.optionsUrl, passkeyRegisterButton.dataset.csrfToken, {label});
+        const publicKey = parseCreationOptions(options);
+        const credential = await navigator.credentials.create({publicKey});
+        const result = await postJson(passkeyRegisterButton.dataset.finishUrl, passkeyRegisterButton.dataset.csrfToken, {
+            label,
+            credential: credentialToJson(credential),
+        });
+
+        showPasskeyMessage('[data-passkey-register-message]', 'Passkey added successfully.', true);
+        window.location.assign(result.redirect || '/admin/security');
+    } catch (error) {
+        showPasskeyMessage('[data-passkey-register-message]', error.message || 'Could not add this passkey.');
+    } finally {
+        passkeyRegisterButton.disabled = false;
+        passkeyRegisterButton.textContent = originalText;
+    }
 });
