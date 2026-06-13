@@ -1,0 +1,39 @@
+package dev.despical.tikfetch.controller;
+
+import dev.despical.tikfetch.exception.UserFacingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+/**
+ * @author Despical
+ * <p>
+ * Created at 12.06.2026
+ */
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(UserFacingException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String userFacing(UserFacingException exception, Model model) {
+        model.addAttribute("title", "Something went wrong");
+        model.addAttribute("message", exception.getMessage());
+        return "error";
+    }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public String unexpected(Exception exception, Model model) {
+        LOGGER.error("Unexpected application error", exception);
+
+        model.addAttribute("title", "Unexpected error");
+        model.addAttribute("message", "Something went wrong. Please try again later.");
+        return "error";
+    }
+}

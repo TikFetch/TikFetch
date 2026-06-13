@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('Download attempts', ~{::content})}">
+<main th:fragment="content">
+    <div th:replace="~{fragments/admin-shell :: shell('attempts', ~{::panel})}">
+        <div th:fragment="panel" class="space-y-6">
+            <div>
+                <h1 class="text-2xl font-semibold text-slate-950">Download attempts</h1>
+                <p class="text-sm text-slate-600">Recent success and failure logs.</p>
+            </div>
+            <div th:replace="~{admin/attempts-table :: table(${attempts})}"></div>
+        </div>
+    </div>
+</main>
+</html>

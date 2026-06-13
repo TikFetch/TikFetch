@@ -1,0 +1,121 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.1.0'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.flywaydb.flyway' version '11.14.1'
+}
+
+group = 'dev.despical'
+version = '1.0.0'
+description = 'TikFetch TikTok video downloader'
+
+def npmCommand = System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows') ? 'npm.cmd' : 'npm'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-flyway'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-mysql'
+    implementation 'com.mysql:mysql-connector-j'
+    implementation 'com.bucket4j:bucket4j_jdk17-core:8.15.0'
+    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
+    compileOnly 'org.projectlombok:lombok'
+
+    annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'junit:junit:4.13.2'
+    testRuntimeOnly 'com.h2database:h2'
+}
+
+tasks.named('test') {
+    useJUnit()
+    exclude '**/*Test.class'
+
+    dependsOn 'runUnitTests'
+}
+
+tasks.register('runUnitTests', JavaExec) {
+    group = 'verification'
+    description = 'Runs TikFetch unit tests with JUnitCore.'
+
+    dependsOn 'testClasses'
+
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'org.junit.runner.JUnitCore'
+
+    args = [
+        'dev.despical.tikfetch.validation.TikTokUrlValidatorTest',
+        'dev.despical.tikfetch.storage.LocalFileStorageServiceTest',
+        'dev.despical.tikfetch.security.JwtTokenServiceTest'
+    ]
+}
+
+tasks.register('npmInstall', Exec) {
+    commandLine npmCommand, 'install'
+
+    inputs.file('package.json')
+    outputs.dir('node_modules')
+}
+
+tasks.register('buildFrontend', Exec) {
+    dependsOn 'npmInstall'
+
+    commandLine npmCommand, 'run', 'build'
+
+    inputs.dir('frontend')
+    inputs.dir('src/main/resources/templates')
+    inputs.file('package.json')
+
+    outputs.dir('src/main/resources/static/dist')
+}
+
+tasks.named('processResources') {
+    dependsOn 'buildFrontend'
+}
+
+flyway {
+    def flywayUrl = providers.gradleProperty('flywayUrl').orElse(providers.environmentVariable('FLYWAY_URL')).orNull
+    def flywayUser = providers.gradleProperty('flywayUser').orElse(providers.environmentVariable('FLYWAY_USER')).orNull
+    def flywayPassword = providers.gradleProperty('flywayPassword').orElse(providers.environmentVariable('FLYWAY_PASSWORD')).orNull
+
+    if (flywayUrl != null) {
+        url = flywayUrl
+    }
+
+    if (flywayUser != null) {
+        user = flywayUser
+    }
+
+    if (flywayPassword != null) {
+        password = flywayPassword
+    }
+}

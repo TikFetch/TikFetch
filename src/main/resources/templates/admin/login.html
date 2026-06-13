@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('Admin login', ~{::content})}">
+<main th:fragment="content" class="flex min-h-screen items-center justify-center px-6">
+    <div class="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <a href="/" class="mb-6 flex items-center gap-2 font-semibold text-slate-950">
+            <img src="/favicon.svg" alt="" class="h-8 w-8 rounded">
+            <span th:text="${app.name}">TikFetch</span>
+        </a>
+        <h1 class="text-2xl font-semibold text-slate-950">Admin login</h1>
+        <form th:action="@{/admin/login}" th:object="${loginForm}" method="post" class="mt-6 space-y-4">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <div>
+                <label for="username" class="mb-2 block text-sm font-medium text-slate-900">Username</label>
+                <input id="username" th:field="*{username}" autocomplete="username"
+                       class="w-full rounded-md border border-slate-300 px-3 py-2 outline-none focus:border-slate-950">
+                <p th:if="${#fields.hasErrors('username')}" th:errors="*{username}"
+                   class="mt-1 text-sm text-red-600"></p>
+            </div>
+            <div>
+                <label for="password" class="mb-2 block text-sm font-medium text-slate-900">Password</label>
+                <input id="password" th:field="*{password}" type="password" autocomplete="current-password"
+                       class="w-full rounded-md border border-slate-300 px-3 py-2 outline-none focus:border-slate-950">
+                <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}"
+                   class="mt-1 text-sm text-red-600"></p>
+            </div>
+            <p th:if="${#fields.hasGlobalErrors()}" th:each="err : ${#fields.globalErrors()}" th:text="${err}"
+               class="text-sm text-red-600"></p>
+            <p th:if="${errorMessage}" th:text="${errorMessage}"
+               class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700"></p>
+            <button class="w-full rounded-md bg-slate-950 px-4 py-2 font-semibold text-white hover:bg-slate-800">Log
+                in
+            </button>
+        </form>
+    </div>
+</main>
+</html>

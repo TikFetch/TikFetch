@@ -1,0 +1,45 @@
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="shell(active, content)" class="min-h-screen bg-slate-50">
+    <header class="border-b border-slate-200 bg-white">
+        <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+            <a href="/admin" class="flex items-center gap-2 font-semibold text-slate-950">
+                <img src="/favicon.svg" alt="" class="h-8 w-8 rounded">
+                <span th:text="${app.name}">TikFetch</span>
+                <span class="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">Admin</span>
+            </a>
+            <form th:action="@{/admin/logout}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button
+                    class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                    Log out
+                </button>
+            </form>
+        </div>
+    </header>
+    <div class="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[220px_minmax(0,1fr)]">
+        <nav class="flex gap-2 overflow-x-auto lg:flex-col">
+            <a href="/admin"
+               th:classappend="${active == 'dashboard'} ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-white'"
+               class="rounded-md px-3 py-2 text-sm font-medium">Dashboard</a>
+            <a href="/admin/videos"
+               th:classappend="${active == 'videos'} ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-white'"
+               class="rounded-md px-3 py-2 text-sm font-medium">Videos</a>
+            <a href="/admin/attempts"
+               th:classappend="${active == 'attempts'} ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-white'"
+               class="rounded-md px-3 py-2 text-sm font-medium">Attempts</a>
+            <a href="/admin/system"
+               th:classappend="${active == 'system'} ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-white'"
+               class="rounded-md px-3 py-2 text-sm font-medium">System</a>
+            <a href="/admin/metrics"
+               th:classappend="${active == 'metrics'} ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-white'"
+               class="rounded-md px-3 py-2 text-sm font-medium">Metrics</a>
+            <a href="/" class="rounded-md px-3 py-2 text-sm font-medium text-slate-700 hover:bg-white">Public Site</a>
+        </nav>
+        <section class="min-w-0">
+            <p th:if="${successMessage}" th:text="${successMessage}"
+               class="mb-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700"></p>
+            <p th:if="${errorMessage}" th:text="${errorMessage}"
+               class="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700"></p>
+            <div th:replace="${content}"></div>
+        </section>
+    </div>
+</div>

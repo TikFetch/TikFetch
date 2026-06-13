@@ -1,0 +1,15 @@
+{
+  "name": "tikfetch",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite --host 127.0.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.8",
+    "vite": "^6.3.5",
+    "tailwindcss": "^4.1.8"
+  }
+}

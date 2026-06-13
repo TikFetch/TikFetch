@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page(${title ?: 'Error'}, ~{::content})}">
+<main th:fragment="content" class="flex min-h-screen items-center justify-center px-6"
+      th:with="appName=${app != null ? app.name : 'TikFetch'}">
+    <div class="max-w-md text-center">
+        <a href="/" class="mb-6 inline-flex items-center gap-2 font-semibold text-slate-950">
+            <img src="/favicon.svg" alt="" class="h-8 w-8 rounded">
+            <span th:text="${appName}">TikFetch</span>
+        </a>
+        <h1 class="text-3xl font-semibold text-slate-950" th:text="${title ?: 'Error'}">Error</h1>
+        <p class="mt-3 text-slate-600" th:text="${message ?: 'Something went wrong.'}">Something went wrong.</p>
+        <a href="/" class="mt-6 inline-flex rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white">Back
+            home</a>
+    </div>
+</main>
+</html>

@@ -1,0 +1,61 @@
+name: 🐛 Bug Report
+description: "Found a glitch or unexpected behavior? Help us squash it by providing a detailed report."
+title: "[BUG] "
+labels: ["bug"]
+type: bug
+assignees:
+  - Despical
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report. Please provide as much detail as possible.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear and concise description of the bug.
+      placeholder: Tell us what you see.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this?
+      placeholder: |
+        1. Run command /...
+        2. Open ...
+        3. Paste ...
+        4. See error ...
+    validations:
+      required: true
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: Where did this occur? Select all that apply.
+      multiple: true
+      options:
+        - Local development
+        - Production server
+        - Windows
+        - Linux
+        - Docker
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output.
+      render: log
+  - type: checkboxes
+    id: validation
+    attributes:
+      label: Validation
+      description: Check these before submitting.
+      options:
+        - label: I have checked for existing issues regarding this bug.
+          required: true

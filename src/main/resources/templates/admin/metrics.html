@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page('Metrics', ~{::content})}">
+<main th:fragment="content">
+    <div th:replace="~{fragments/admin-shell :: shell('metrics', ~{::panel})}">
+        <div th:fragment="panel" class="space-y-6">
+            <div>
+                <h1 class="text-2xl font-semibold text-slate-950">Metrics</h1>
+                <p class="text-sm text-slate-600">Runtime, JVM, CPU and request metrics collected for TikFetch.</p>
+            </div>
+
+            <section class="space-y-3">
+                <h2 class="font-semibold text-slate-950">Runtime</h2>
+                <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <article th:each="metric : ${metrics.runtime}"
+                             class="rounded-lg border border-slate-200 bg-white p-4">
+                        <p class="text-sm text-slate-500" th:text="${metric.label}">Label</p>
+                        <p class="mt-2 truncate text-2xl font-semibold text-slate-950" th:title="${metric.value}"
+                           th:text="${metric.value}">Value</p>
+                        <p class="mt-1 truncate text-xs text-slate-500" th:title="${metric.detail}"
+                           th:text="${metric.detail}">Detail</p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="space-y-3">
+                <h2 class="font-semibold text-slate-950">Machine</h2>
+                <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <article th:each="metric : ${metrics.system}"
+                             class="rounded-lg border border-slate-200 bg-white p-4">
+                        <p class="text-sm text-slate-500" th:text="${metric.label}">Label</p>
+                        <p class="mt-2 truncate text-2xl font-semibold text-slate-950" th:title="${metric.value}"
+                           th:text="${metric.value}">Value</p>
+                        <p class="mt-1 truncate text-xs text-slate-500" th:title="${metric.detail}"
+                           th:text="${metric.detail}">Detail</p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="space-y-3">
+                <h2 class="font-semibold text-slate-950">Traffic</h2>
+                <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <article th:each="metric : ${metrics.traffic}"
+                             class="rounded-lg border border-slate-200 bg-white p-4">
+                        <p class="text-sm text-slate-500" th:text="${metric.label}">Label</p>
+                        <p class="mt-2 truncate text-2xl font-semibold text-slate-950" th:title="${metric.value}"
+                           th:text="${metric.value}">Value</p>
+                        <p class="mt-1 truncate text-xs text-slate-500" th:title="${metric.detail}"
+                           th:text="${metric.detail}">Detail</p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="space-y-3">
+                <h2 class="font-semibold text-slate-950">Database</h2>
+                <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <article th:each="metric : ${metrics.database}"
+                             class="rounded-lg border border-slate-200 bg-white p-4">
+                        <p class="text-sm text-slate-500" th:text="${metric.label}">Label</p>
+                        <p class="mt-2 truncate text-2xl font-semibold text-slate-950" th:title="${metric.value}"
+                           th:text="${metric.value}">Value</p>
+                        <p class="mt-1 truncate text-xs text-slate-500" th:title="${metric.detail}"
+                           th:text="${metric.detail}">Detail</p>
+                    </article>
+                </div>
+            </section>
+        </div>
+    </div>
+</main>
+</html>

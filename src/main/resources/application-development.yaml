@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:tikfetch}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:password}
+
+  thymeleaf:
+    cache: false
+
+app:
+  base-url: ${APP_BASE_URL:http://localhost:8080}
+
+  storage:
+    directory: ${APP_STORAGE_DIR:C:/tikfetch/storage}
+
+  jwt:
+    secret: ${JWT_SECRET:change-this-to-a-long-random-secret-at-least-256-bits}
+
+  admin:
+    username: ${ADMIN_USERNAME:admin}
+    email: ${ADMIN_EMAIL:admin@example.com}
+    password: ${ADMIN_PASSWORD:change-me}
+
+  cookies:
+    secure: ${COOKIE_SECURE:false}
+
+logging:
+  level:
+    dev.despical.tikfetch: DEBUG

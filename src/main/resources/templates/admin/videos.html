@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('Downloaded videos', ~{::content})}">
+<main th:fragment="content">
+    <div th:replace="~{fragments/admin-shell :: shell('videos', ~{::panel})}">
+        <div th:fragment="panel" class="space-y-6">
+            <div>
+                <h1 class="text-2xl font-semibold text-slate-950">Downloaded videos</h1>
+                <p class="text-sm text-slate-600">View metadata and delete stored files with their records.</p>
+            </div>
+            <div th:replace="~{admin/videos-table :: table(${videos}, false)}"></div>
+        </div>
+    </div>
+</main>
+</html>

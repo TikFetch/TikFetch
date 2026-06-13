@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('Admin dashboard', ~{::content})}">
+<main th:fragment="content">
+    <div th:replace="~{fragments/admin-shell :: shell('dashboard', ~{::panel})}">
+        <div th:fragment="panel" class="space-y-6">
+            <div>
+                <h1 class="text-2xl font-semibold text-slate-950">Dashboard</h1>
+                <p class="text-sm text-slate-600">Recent activity and storage status.</p>
+            </div>
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <div class="min-w-0 rounded-lg border border-slate-200 bg-white p-4">
+                    <p class="text-sm text-slate-500">Application health</p>
+                    <p class="mt-2 text-2xl font-semibold"
+                       th:classappend="${systemInfo.healthStatus == 'UP'} ? ' text-emerald-700' : ' text-red-700'"
+                       th:text="${systemInfo.healthStatus}">UP</p>
+                </div>
+                <div class="min-w-0 rounded-lg border border-slate-200 bg-white p-4">
+                    <p class="text-sm text-slate-500">Successful videos</p>
+                    <p class="mt-2 text-2xl font-semibold" th:text="${systemInfo.successfulVideos}">0</p>
+                </div>
+                <div class="min-w-0 rounded-lg border border-slate-200 bg-white p-4">
+                    <p class="text-sm text-slate-500">Attempts logged</p>
+                    <p class="mt-2 text-2xl font-semibold" th:text="${systemInfo.attempts}">0</p>
+                </div>
+                <div class="min-w-0 rounded-lg border border-slate-200 bg-white p-4">
+                    <p class="text-sm text-slate-500">Usable storage</p>
+                    <p class="mt-2 text-2xl font-semibold" th:text="${systemInfo.usableSpace}">0 B</p>
+                </div>
+            </div>
+            <div th:replace="~{admin/videos-table :: table(${videos}, true)}"></div>
+            <div th:replace="~{admin/attempts-table :: table(${attempts})}"></div>
+        </div>
+    </div>
+</main>
+</html>

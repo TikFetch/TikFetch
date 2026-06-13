@@ -1,0 +1,87 @@
+spring:
+  profiles:
+    default: development
+
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: ${APP_NAME:TikFetch}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  thymeleaf:
+    cache: true
+
+server:
+  forward-headers-strategy: framework
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when-authorized
+
+app:
+  name: ${APP_NAME:TikFetch}
+  base-url: ${APP_BASE_URL:https://www.tikfetch.despical.dev}
+  latest-videos-limit: ${APP_LATEST_VIDEOS_LIMIT:10}
+
+  storage:
+    directory: ${APP_STORAGE_DIR:C:/tikfetch/storage}
+    retained-successful-videos: ${APP_RETAINED_SUCCESSFUL_VIDEOS:10}
+
+  cleanup:
+    enabled: ${APP_CLEANUP_ENABLED:true}
+    interval-ms: ${APP_CLEANUP_INTERVAL_MS:3600000}
+    failed-attempt-retention-days: ${APP_FAILED_ATTEMPT_RETENTION_DAYS:7}
+
+  jwt:
+    secret: ${JWT_SECRET:change-this-to-a-long-random-secret-at-least-256-bits}
+    access-token-minutes: ${JWT_ACCESS_TOKEN_MINUTES:15}
+    refresh-token-days: ${JWT_REFRESH_TOKEN_DAYS:30}
+
+  admin:
+    username: ${ADMIN_USERNAME:admin}
+    email: ${ADMIN_EMAIL:admin@example.com}
+    password: ${ADMIN_PASSWORD:change-me}
+
+  yt-dlp:
+    path: ${YT_DLP_PATH:yt-dlp}
+    timeout-seconds: ${YT_DLP_TIMEOUT_SECONDS:120}
+    cookies-path: ${YT_DLP_COOKIES_PATH:}
+    cookies-from-browser: ${YT_DLP_COOKIES_FROM_BROWSER:}
+    proxy: ${YT_DLP_PROXY:}
+    user-agent: ${YT_DLP_USER_AGENT:}
+    extractor-args: ${YT_DLP_EXTRACTOR_ARGS:}
+    format: ${YT_DLP_FORMAT:best[vcodec=h264][ext=mp4]/best[ext=mp4]/best}
+    socket-timeout-seconds: ${YT_DLP_SOCKET_TIMEOUT_SECONDS:60}
+    retries: ${YT_DLP_RETRIES:10}
+    extractor-retries: ${YT_DLP_EXTRACTOR_RETRIES:5}
+    fragment-retries: ${YT_DLP_FRAGMENT_RETRIES:10}
+    retry-sleep: ${YT_DLP_RETRY_SLEEP:exp=1:20}
+
+  cookies:
+    secure: ${COOKIE_SECURE:false}
+
+  rate-limit:
+    download-capacity: ${APP_RATE_LIMIT_DOWNLOAD_CAPACITY:100}
+    download-refill-minutes: ${APP_RATE_LIMIT_DOWNLOAD_REFILL_MINUTES:1}
+    login-capacity: ${APP_RATE_LIMIT_LOGIN_CAPACITY:5}
+    login-refill-minutes: ${APP_RATE_LIMIT_LOGIN_REFILL_MINUTES:5}
+
+logging:
+  level:
+    dev.despical.tikfetch: INFO

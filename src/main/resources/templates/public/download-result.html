@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('TikTok Download Ready', ~{::content})}">
+<main th:fragment="content" class="with-site-header">
+    <div th:replace="~{fragments/header :: header}"></div>
+    <section class="bg-white">
+        <div class="download-result-shell">
+            <p th:if="${successMessage}" th:text="${successMessage}"
+               class="mb-5 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700"></p>
+
+            <div class="result-search-panel">
+                <div>
+                    <h1 class="text-3xl font-semibold tracking-tight text-slate-950">Insert a new TikTok video or photo
+                        URL</h1>
+                </div>
+                <form th:action="@{/download}" th:object="${downloadForm}" method="post" class="space-y-4"
+                      data-download-form novalidate>
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <label for="url" class="sr-only">TikTok video or photo URL</label>
+                    <div class="clipboard-input-wrap" data-clipboard-input>
+                        <input id="url" th:field="*{url}" type="url" autocomplete="off"
+                               placeholder="https://www.tiktok.com/@creator/video/... or /photo/..."
+                               class="w-full rounded-md border border-slate-300 bg-white px-4 py-3 pr-24 text-slate-950 outline-none ring-0 transition focus:border-slate-950">
+                        <button type="button" class="clipboard-input-button" data-paste-tiktok hidden>Paste</button>
+                        <button type="button" class="clipboard-input-button clipboard-clear-button" data-clear-input
+                                hidden>Clear
+                        </button>
+                    </div>
+                    <div class="download-progress" data-download-progress aria-hidden="true" role="status"
+                         aria-live="polite">
+                        <div class="flex items-center justify-between text-xs font-medium text-slate-600">
+                            <span data-progress-label
+                                  th:text="${video.image} ? 'Downloading photo' : 'Downloading video'">Downloading video</span>
+                            <span>Please keep this tab open</span>
+                        </div>
+                        <div class="download-progress-track">
+                            <div class="download-progress-bar"></div>
+                        </div>
+                    </div>
+                    <p class="download-inline-error" data-download-error hidden></p>
+                    <button type="submit" data-submit-button
+                            class="download-submit-button w-full rounded-md bg-slate-950 px-5 py-3 font-semibold text-white transition hover:bg-slate-800 disabled:opacity-70">
+                        Download
+                    </button>
+                </form>
+            </div>
+
+            <div class="result-section-separator" aria-hidden="true"></div>
+
+            <div class="download-result-panel">
+                <div>
+                    <a th:href="${video.originalUrl}" target="_blank" rel="noopener noreferrer"
+                       class="download-result-title video-title-link block text-3xl font-semibold tracking-tight"
+                       th:text="${video.title}">Your TikTok video is ready.</a>
+                    <a th:if="${video.authorUrl != null}" th:href="${video.authorUrl}" target="_blank"
+                       rel="noopener noreferrer"
+                       class="mt-4 inline-flex text-sm font-medium text-slate-600 hover:text-slate-950"
+                       th:text="${video.author ?: 'Unknown creator'}">Creator</a>
+                    <p th:if="${video.authorUrl == null}" class="mt-4 text-sm font-medium text-slate-600"
+                       th:text="${video.author ?: 'Unknown creator'}">Creator</p>
+                    <div class="mt-6 flex flex-wrap gap-3">
+                        <a th:href="${video.image && !#lists.isEmpty(galleryImages) ? galleryImages[0].downloadUrl : '/media/videos/' + video.id}"
+                           data-gallery-download
+                           class="rounded-md bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+                           th:text="${video.image} ? 'Download photo' : 'Download video'">Download video</a>
+                    </div>
+                    <dl th:if="${!video.image}"
+                        class="video-metrics mt-6 grid max-w-md grid-cols-2 gap-3 text-sm text-slate-600">
+                        <div>
+                            <dt class="font-medium text-slate-900">Length</dt>
+                            <dd th:text="${video.duration}">0:00</dd>
+                        </div>
+                        <div>
+                            <dt class="font-medium text-slate-900">Size</dt>
+                            <dd th:text="${video.fileSize}">Unknown</dd>
+                        </div>
+                        <div>
+                            <dt class="font-medium text-slate-900">Likes</dt>
+                            <dd th:text="${video.likeCount}">Unknown</dd>
+                        </div>
+                        <div>
+                            <dt class="font-medium text-slate-900">Comments</dt>
+                            <dd th:text="${video.commentCount}">Unknown</dd>
+                        </div>
+                    </dl>
+                    <dl th:if="${video.image}"
+                        class="video-metrics photo-metrics mt-6 grid max-w-md grid-cols-2 gap-3 text-sm text-slate-600">
+                        <div>
+                            <dt class="font-medium text-slate-900">Likes</dt>
+                            <dd th:text="${video.likeCount}">Unknown</dd>
+                        </div>
+                        <div>
+                            <dt class="font-medium text-slate-900">Comments</dt>
+                            <dd th:text="${video.commentCount}">Unknown</dd>
+                        </div>
+                        <div>
+                            <dt class="font-medium text-slate-900">Size</dt>
+                            <dd data-gallery-size th:text="${video.fileSize}">Unknown</dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <article class="download-preview-card">
+                    <div th:if="${video.image && !#lists.isEmpty(galleryImages)}"
+                         class="download-preview-media gallery-viewer" data-gallery-viewer
+                         th:attr="data-gallery-count=${#lists.size(galleryImages)}">
+                        <button th:if="${#lists.size(galleryImages) > 1}" type="button"
+                                class="gallery-nav gallery-nav-prev" data-gallery-prev aria-label="Previous photo">
+                            &#8249;
+                        </button>
+                        <img data-gallery-image th:src="${galleryImages[0].url}" alt=""
+                             class="h-full w-full object-contain">
+                        <button th:if="${#lists.size(galleryImages) > 1}" type="button"
+                                class="gallery-nav gallery-nav-next" data-gallery-next aria-label="Next photo">&#8250;
+                        </button>
+                        <div th:if="${#lists.size(galleryImages) > 1}" class="gallery-counter" data-gallery-counter
+                             th:text="'1 / ' + ${#lists.size(galleryImages)}">1 / 1
+                        </div>
+                        <div class="hidden" data-gallery-items>
+                            <span th:each="image : ${galleryImages}"
+                                  th:attr="data-url=${image.url},data-download=${image.downloadUrl},data-size=${image.fileSize}"></span>
+                        </div>
+                    </div>
+                    <div th:if="${video.image && #lists.isEmpty(galleryImages)}" class="download-preview-media">
+                        <img th:src="${video.streamUrl}" alt="" class="h-full w-full object-contain">
+                    </div>
+                    <div th:if="${!video.image}" class="download-preview-media">
+                        <video th:if="${!video.image}" controls preload="metadata" th:poster="${video.thumbnailUrl}"
+                               th:src="${video.streamUrl}" class="h-full w-full object-cover">
+                            Your browser does not support video playback.
+                        </video>
+                    </div>
+                    <div class="space-y-3 p-4">
+                        <p class="text-sm text-slate-600"
+                           th:text="${video.image} ? 'Preview the photo here, or download the file for offline use.' : 'Preview the video here, or download the file for offline use.'">
+                            Preview the video here, or download the file for offline use.</p>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <div class="result-latest-block">
+        <div th:replace="~{fragments/latest-videos :: latestVideos(${latestVideos})}"></div>
+    </div>
+    <div th:replace="~{fragments/footer :: footer}"></div>
+</main>
+</html>

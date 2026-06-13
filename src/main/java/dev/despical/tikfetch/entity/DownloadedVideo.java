@@ -1,0 +1,100 @@
+package dev.despical.tikfetch.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+
+import java.time.Instant;
+
+import lombok.*;
+
+/**
+ * @author Despical
+ * <p>
+ * Created at 12.06.2026
+ */
+@Getter
+@Setter
+@NoArgsConstructor
+@Entity
+@Table(name = "downloaded_videos")
+public class DownloadedVideo {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, name = "original_url", length = 2048)
+    private String originalUrl;
+
+    @Column(nullable = false, name = "normalized_url", length = 2048)
+    private String normalizedUrl;
+
+    @Column(name = "source_video_id", length = 128)
+    private String sourceVideoId;
+
+    @Column(nullable = false)
+    private String title;
+
+    @Column
+    private String author;
+
+    @Column(name = "author_url", length = 2048)
+    private String authorUrl;
+
+    @Column(name = "thumbnail_path", length = 1024)
+    private String thumbnailPath;
+
+    @Column(name = "video_path", length = 1024)
+    private String videoPath;
+
+    @Column(name = "mime_type", length = 120)
+    private String mimeType;
+
+    @Column(name = "file_size")
+    private Long fileSize;
+
+    @Column(name = "duration_seconds")
+    private Long durationSeconds;
+
+    @Column(name = "like_count")
+    private Long likeCount;
+
+    @Column(name = "comment_count")
+    private Long commentCount;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 32)
+    private DownloadStatus status = DownloadStatus.PENDING;
+
+    @Column(name = "error_message", length = 1024)
+    private String errorMessage;
+
+    @Column(name = "downloaded_at")
+    private Instant downloadedAt;
+
+    @Column(nullable = false, name = "created_at", updatable = false)
+    private Instant createdAt;
+
+    @Column(nullable = false, name = "updated_at")
+    private Instant updatedAt;
+
+    @PrePersist
+    void onCreate() {
+        Instant now = Instant.now();
+        createdAt = now;
+        updatedAt = now;
+    }
+
+    @PreUpdate
+    void onUpdate() {
+        updatedAt = Instant.now();
+    }
+}

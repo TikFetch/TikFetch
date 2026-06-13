@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="page(title, content)">
+<head
+    th:with="appName=${app != null ? app.name : 'TikFetch'}, pageTitle=${title != null && !title.isBlank() ? title : appName}, appUrl=${app != null ? app.baseUrl : 'https://www.tikfetch.despical.dev'}, description='Download TikTok videos and photo posts without watermark or ads. Paste a public TikTok link and save MP4 videos or JPEG photos with TikFetch.'">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${pageTitle == appName ? appName : pageTitle + ' | ' + appName}">TikFetch</title>
+    <meta name="description" th:content="${description}">
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" th:href="${appUrl}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" th:content="${appName}">
+    <meta property="og:title" th:content="${pageTitle == appName ? appName : pageTitle + ' | ' + appName}">
+    <meta property="og:description" th:content="${description}">
+    <meta property="og:url" th:content="${appUrl}">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" th:content="${pageTitle == appName ? appName : pageTitle + ' | ' + appName}">
+    <meta name="twitter:description" th:content="${description}">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/dist/assets/app.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HNMKGXGGXD"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag('js', new Date());
+        gtag('config', 'G-HNMKGXGGXD');
+    </script>
+    <script type="module" src="/dist/assets/app.js" defer></script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-950 antialiased">
+<main th:replace="${content}"></main>
+<div th:replace="~{fragments/scroll-top :: scrollTop}"></div>
+</body>
+</html>

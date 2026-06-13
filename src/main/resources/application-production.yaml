@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT:3306}/${MYSQL_DATABASE}?createDatabaseIfNotExist=false&useSSL=true&allowPublicKeyRetrieval=false&serverTimezone=UTC
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
+
+  thymeleaf:
+    cache: true
+
+app:
+  base-url: ${APP_BASE_URL}
+
+  storage:
+    directory: ${APP_STORAGE_DIR}
+
+  jwt:
+    secret: ${JWT_SECRET}
+
+  admin:
+    username: ${ADMIN_USERNAME}
+    email: ${ADMIN_EMAIL}
+    password: ${ADMIN_PASSWORD}
+
+  cookies:
+    secure: ${COOKIE_SECURE:true}
+
+logging:
+  level:
+    dev.despical.tikfetch: INFO

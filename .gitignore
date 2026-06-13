@@ -1,0 +1,49 @@
+# Build outputs
+.gradle/
+build/
+out/
+target/
+bin/
+
+# Frontend dependencies and generated assets
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+src/main/resources/static/dist/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.pid
+
+# Runtime storage
+storage/
+tikfetch-storage/
+C:/tikfetch/storage/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IntelliJ IDEA
+.idea/*
+!.idea/
+!.idea/icon.svg
+*.iml
+
+# VS Code
+.vscode/
+
+# Generated database/helper files
+hs_err_pid*
+replay_pid*

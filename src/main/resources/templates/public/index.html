@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('TikTok Video and Photo Downloader', ~{::content})}">
+<main th:fragment="content" class="with-site-header">
+    <div th:replace="~{fragments/header :: header}"></div>
+    <section class="hero-surface">
+        <div class="mx-auto flex min-h-[62vh] max-w-6xl flex-col items-center justify-center px-6 py-10 text-center">
+            <h1 class="max-w-4xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Download TikTok
+                videos and photos without watermark.</h1>
+            <p class="mt-5 max-w-2xl text-lg leading-8 text-slate-600">Fast, ad-free TikTok saving for public video and
+                photo links. Paste a URL and save MP4 videos or JPEG photos in seconds.</p>
+
+            <div class="mt-8 w-full max-w-3xl rounded-lg border border-slate-200 bg-slate-50 p-5 text-left shadow-sm">
+                <form th:action="@{/download}" th:object="${downloadForm}" method="post" class="space-y-4"
+                      data-download-form novalidate>
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <div>
+                        <label for="url" class="mb-2 block text-sm font-medium text-slate-900">Insert the TikTok video
+                            or photo URL</label>
+                        <div class="clipboard-input-wrap" data-clipboard-input>
+                            <input id="url" th:field="*{url}" type="url" autocomplete="off"
+                                   placeholder="https://www.tiktok.com/@creator/video/... or /photo/..."
+                                   class="w-full rounded-md border border-slate-300 bg-white px-4 py-3 pr-24 text-slate-950 outline-none ring-0 transition focus:border-slate-950">
+                            <button type="button" class="clipboard-input-button" data-paste-tiktok hidden>Paste</button>
+                            <button type="button" class="clipboard-input-button clipboard-clear-button" data-clear-input
+                                    hidden>Clear
+                            </button>
+                        </div>
+                        <p th:if="${#fields.hasErrors('url')}" th:errors="*{url}" class="mt-2 text-sm text-red-600"></p>
+                    </div>
+                    <p th:if="${#fields.hasGlobalErrors()}" th:each="err : ${#fields.globalErrors()}" th:text="${err}"
+                       class="text-sm text-red-600"></p>
+                    <p th:if="${errorMessage}" th:text="${errorMessage}"
+                       class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700"></p>
+                    <p th:if="${successMessage}" th:text="${successMessage}"
+                       class="rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700"></p>
+                    <p class="download-inline-error" data-download-error hidden></p>
+                    <div class="download-progress" data-download-progress aria-hidden="true" role="status"
+                         aria-live="polite">
+                        <div class="flex items-center justify-between text-xs font-medium text-slate-600">
+                            <span data-progress-label>Fetching media</span>
+                            <span>Please keep this tab open</span>
+                        </div>
+                        <div class="download-progress-track">
+                            <div class="download-progress-bar"></div>
+                        </div>
+                    </div>
+                    <button type="submit" data-submit-button
+                            class="download-submit-button w-full rounded-md bg-slate-950 px-5 py-3 font-semibold text-white transition hover:bg-slate-800 disabled:opacity-70">
+                        Download
+                    </button>
+                </form>
+            </div>
+
+            <div class="feature-strip mt-10 grid w-full max-w-6xl gap-7 text-left md:grid-cols-3">
+                <div>
+                    <p class="feature-title">Unlimited TikTok saving</p>
+                    <p class="feature-copy">Save as many public TikTok videos and photo posts as you need without
+                        artificial limits.</p>
+                </div>
+                <div>
+                    <p class="feature-title">No watermark, no ads</p>
+                    <p class="feature-copy">Download TikTok media without watermark clutter, popups, or ad-heavy
+                        distractions.</p>
+                </div>
+                <div>
+                    <p class="feature-title">Videos and photos</p>
+                    <p class="feature-copy">Fetch MP4 videos and JPEG photo posts, including swipeable TikTok photo
+                        galleries.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div th:replace="~{fragments/latest-videos :: latestVideos(${latestVideos})}"></div>
+    <div th:replace="~{fragments/footer :: footer}"></div>
+</main>
+</html>
