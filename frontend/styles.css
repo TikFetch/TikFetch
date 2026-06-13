@@ -78,10 +78,10 @@ html {
     border-top: 1px solid #e2e8f0;
     border-bottom: 1px solid #e2e8f0;
     align-items: center;
-    min-height: 196px;
+    min-height: auto;
     margin-top: 52px;
-    padding-top: 0;
-    padding-bottom: 0;
+    padding-top: 28px;
+    padding-bottom: 28px;
     text-align: center;
 }
 
@@ -152,8 +152,9 @@ html {
 
 .footer-main-row {
     display: flex;
-    flex-direction: column;
-    gap: 18px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
 }
 
 .footer-brand {
@@ -218,10 +219,10 @@ html {
 }
 
 @media (min-width: 768px) {
-    .footer-main-row {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
+    .feature-strip {
+        min-height: 196px;
+        padding-top: 0;
+        padding-bottom: 0;
     }
 }
 
