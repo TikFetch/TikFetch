@@ -4,20 +4,20 @@
         <h2 class="font-semibold text-slate-950">Videos</h2>
     </div>
     <div th:if="${#lists.isEmpty(videos)}" class="p-6 text-sm text-slate-600">No video records yet.</div>
-    <div th:if="${!#lists.isEmpty(videos)}" class="overflow-hidden">
-        <table class="w-full table-fixed divide-y divide-slate-200 text-sm">
+    <div th:if="${!#lists.isEmpty(videos)}" class="admin-table-scroll overflow-x-auto">
+        <table class="min-w-[720px] w-full table-fixed divide-y divide-slate-200 text-sm">
             <thead class="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
             <tr>
-                <th class="w-[42%] px-4 py-3">Title</th>
-                <th class="w-24 px-4 py-3">Status</th>
-                <th class="w-24 px-4 py-3">Size</th>
-                <th class="w-36 px-4 py-3">Downloaded</th>
-                <th class="w-40 px-4 py-3">Actions</th>
+                <th class="w-[42%] border-r border-slate-200 px-4 py-3">Title</th>
+                <th class="w-24 border-r border-slate-200 px-4 py-3">Status</th>
+                <th class="w-24 border-r border-slate-200 px-4 py-3">Size</th>
+                <th class="w-36 border-r border-slate-200 px-4 py-3">Downloaded</th>
+                <th class="w-28 px-4 py-3">Actions</th>
             </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
             <tr th:each="video : ${videos}" class="odd:bg-white even:bg-slate-100">
-                <td class="min-w-0 px-4 py-3">
+                <td class="min-w-0 border-r border-slate-200 px-4 py-3">
                     <p class="truncate font-medium text-slate-950" th:title="${video.title}" th:text="${video.title}">
                         Title</p>
                     <a th:href="${video.originalUrl}" th:title="${video.originalUrl}" target="_blank"
@@ -26,17 +26,17 @@
                     <p th:if="${!compact}" class="mt-1 truncate text-xs text-slate-500" th:title="${video.videoPath}"
                        th:text="${video.videoPath}">Path</p>
                 </td>
-                <td class="px-4 py-3" th:text="${video.status}">SUCCESS</td>
-                <td class="whitespace-nowrap px-4 py-3" th:text="${video.fileSize}">Unknown</td>
-                <td class="whitespace-nowrap px-4 py-3" th:text="${video.downloadedAt}">Now</td>
+                <td class="border-r border-slate-200 px-4 py-3" th:text="${video.status}">SUCCESS</td>
+                <td class="whitespace-nowrap border-r border-slate-200 px-4 py-3" th:text="${video.fileSize}">Unknown</td>
+                <td class="whitespace-nowrap border-r border-slate-200 px-4 py-3" th:text="${video.downloadedAt}">Now</td>
                 <td class="px-4 py-3">
-                    <div class="flex flex-wrap gap-2">
+                    <div class="flex flex-col items-start gap-2 sm:flex-row">
                         <a th:if="${video.status == 'SUCCESS'}" th:href="@{/media/videos/{id}(id=${video.id})}"
-                           class="rounded-md border border-slate-300 px-2 py-1 text-xs font-medium hover:bg-slate-50">Download</a>
+                           class="admin-action-button rounded-md border border-slate-300 px-2 py-1 text-xs font-medium hover:bg-slate-50">Download</a>
                         <form th:action="@{/admin/videos/{id}/delete(id=${video.id})}" method="post">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <button
-                                class="rounded-md bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700">
+                                class="admin-action-button rounded-md bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700">
                                 Delete
                             </button>
                         </form>

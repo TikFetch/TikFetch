@@ -6,6 +6,7 @@ const scrollTopButton = document.querySelector('[data-scroll-top]');
 const galleryViewers = document.querySelectorAll('[data-gallery-viewer]');
 const passkeyLoginButton = document.querySelector('[data-passkey-login]');
 const passkeyRegisterButton = document.querySelector('[data-passkey-register]');
+const adminNavScrolls = document.querySelectorAll('.admin-nav-scroll');
 
 downloadForms.forEach((downloadForm) => {
     downloadForm.addEventListener('submit', async (event) => {
@@ -174,6 +175,18 @@ if (scrollTopButton) {
     });
     updateScrollButton();
 }
+
+adminNavScrolls.forEach((nav) => {
+    let scrollTimeout;
+
+    nav.addEventListener('scroll', () => {
+        nav.classList.add('is-scrolling');
+        window.clearTimeout(scrollTimeout);
+        scrollTimeout = window.setTimeout(() => {
+            nav.classList.remove('is-scrolling');
+        }, 700);
+    }, {passive: true});
+});
 
 galleryViewers.forEach((viewer) => {
     const image = viewer.querySelector('[data-gallery-image]');

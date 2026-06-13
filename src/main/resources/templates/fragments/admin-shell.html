@@ -16,26 +16,26 @@
         </div>
     </header>
     <div class="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[220px_minmax(0,1fr)]">
-        <nav class="flex gap-2 overflow-x-auto lg:flex-col">
+        <nav class="admin-nav-scroll flex items-center gap-2 overflow-x-auto lg:flex-col lg:items-stretch">
             <a href="/admin"
                th:classappend="${active == 'dashboard'} ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-white'"
-               class="rounded-md px-3 py-2 text-sm font-medium">Dashboard</a>
+               class="flex-none rounded-md px-3 py-2 text-sm font-medium">Dashboard</a>
             <a href="/admin/videos"
                th:classappend="${active == 'videos'} ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-white'"
-               class="rounded-md px-3 py-2 text-sm font-medium">Videos</a>
+               class="flex-none rounded-md px-3 py-2 text-sm font-medium">Videos</a>
             <a href="/admin/attempts"
                th:classappend="${active == 'attempts'} ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-white'"
-               class="rounded-md px-3 py-2 text-sm font-medium">Attempts</a>
+               class="flex-none rounded-md px-3 py-2 text-sm font-medium">Attempts</a>
             <a href="/admin/system"
                th:classappend="${active == 'system'} ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-white'"
-               class="rounded-md px-3 py-2 text-sm font-medium">System</a>
+               class="flex-none rounded-md px-3 py-2 text-sm font-medium">System</a>
             <a href="/admin/metrics"
                th:classappend="${active == 'metrics'} ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-white'"
-               class="rounded-md px-3 py-2 text-sm font-medium">Metrics</a>
+               class="flex-none rounded-md px-3 py-2 text-sm font-medium">Metrics</a>
             <a href="/admin/security"
                th:classappend="${active == 'security'} ? 'bg-slate-950 text-white' : 'text-slate-700 hover:bg-white'"
-               class="rounded-md px-3 py-2 text-sm font-medium">Security</a>
-            <a href="/" class="rounded-md px-3 py-2 text-sm font-medium text-slate-700 hover:bg-white">Public Site</a>
+               class="flex-none rounded-md px-3 py-2 text-sm font-medium">Security</a>
+            <a href="/" class="flex-none rounded-md px-3 py-2 text-sm font-medium text-slate-700 hover:bg-white">Public Site</a>
         </nav>
         <section class="min-w-0">
             <p th:if="${successMessage}" th:text="${successMessage}"

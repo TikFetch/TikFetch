@@ -4,8 +4,8 @@
         <h2 class="font-semibold text-slate-950">Attempts</h2>
     </div>
     <div th:if="${#lists.isEmpty(attempts)}" class="p-6 text-sm text-slate-600">No attempts logged yet.</div>
-    <div th:if="${!#lists.isEmpty(attempts)}" class="overflow-hidden">
-        <table class="w-full table-fixed divide-y divide-slate-200 text-sm">
+    <div th:if="${!#lists.isEmpty(attempts)}" class="admin-table-scroll overflow-x-auto">
+        <table class="min-w-[860px] w-full table-fixed divide-y divide-slate-200 text-sm">
             <thead class="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
             <tr>
                 <th class="w-24 border-r border-slate-200 px-4 py-3">Status</th>

@@ -226,6 +226,48 @@ html {
     }
 }
 
+.admin-nav-scroll {
+    padding-bottom: 4px;
+    scrollbar-width: none;
+}
+
+.admin-nav-scroll::-webkit-scrollbar {
+    height: 0;
+}
+
+.admin-nav-scroll.is-scrolling {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.admin-nav-scroll.is-scrolling::-webkit-scrollbar {
+    height: 6px;
+}
+
+.admin-nav-scroll.is-scrolling::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #cbd5e1;
+}
+
+.admin-table-scroll {
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.admin-table-scroll::-webkit-scrollbar {
+    height: 8px;
+}
+
+.admin-table-scroll::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #cbd5e1;
+}
+
+.admin-action-button {
+    display: inline-flex;
+    width: 76px;
+    justify-content: center;
+}
+
 .clipboard-input-wrap {
     position: relative;
 }

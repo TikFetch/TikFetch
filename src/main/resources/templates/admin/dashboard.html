@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: page('Admin dashboard', ~{::content})}">
+      th:replace="~{fragments/layout :: page('Admin Dashboard', ~{::content})}">
 <main th:fragment="content">
     <div th:replace="~{fragments/admin-shell :: shell('dashboard', ~{::panel})}">
         <div th:fragment="panel" class="space-y-6">

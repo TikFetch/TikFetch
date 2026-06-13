@@ -22,7 +22,9 @@ import dev.despical.tikfetch.exception.UserFacingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -36,6 +38,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class GlobalExceptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final String CHROME_DEVTOOLS_RESOURCE = ".well-known/appspecific/com.chrome.devtools.json";
 
     @ExceptionHandler(UserFacingException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -43,6 +46,15 @@ public class GlobalExceptionHandler {
         model.addAttribute("title", "Something went wrong");
         model.addAttribute("message", exception.getMessage());
         return "error";
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Void> noResource(NoResourceFoundException exception) {
+        if (CHROME_DEVTOOLS_RESOURCE.equals(exception.getResourcePath())) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.notFound().build();
     }
 
     @ExceptionHandler(Exception.class)
