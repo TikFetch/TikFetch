@@ -26,9 +26,9 @@ src/main/resources/static/dist/
 *.pid
 
 # Runtime storage
-storage/
-tikfetch-storage/
-C:/tikfetch/storage/
+/storage/
+/tikfetch-storage/
+/C:/tikfetch/storage/
 
 # OS files
 .DS_Store
