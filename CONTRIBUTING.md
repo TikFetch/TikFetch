@@ -1,11 +1,11 @@
 # Contributing
 
-When contributing to this repository, please first discuss the change you wish to make via [issue](https://github.com/Despical/TikFetch/issues/new) with the owner of this repository before making a change.
+When contributing to this repository, please first discuss the change you wish to make via [issue](https://github.com/TikFetch/TikFetch/issues/new) with the owner of this repository before making a change.
 
 Please note we have a code of conduct, please follow it in all your interactions with the project.
 
 ## Pull Request Process
-If you want to help this project and don't know where to start, check out the [currently opened issues](https://github.com/Despical/TikFetch/issues)
+If you want to help this project and don't know where to start, check out the [currently opened issues](https://github.com/TikFetch/TikFetch/issues)
 before creating any PRs. Because there are people that could use your help.
 
 * Ensure you didn't use tabs! Please use spaces for indentation.

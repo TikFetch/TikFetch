@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security report
-    url: https://github.com/Despical/TikFetch/security/policy
+    url: https://github.com/TikFetch/TikFetch/security/policy
     about: Please report vulnerabilities privately.
