@@ -8,7 +8,7 @@ please report it privately instead of opening a public issue.
 Please send security reports to:
 
 ```text
-berkeakcen@gmail.com
+contact@despical.dev
 ```
 
 When possible, include the following details:
