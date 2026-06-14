@@ -38,7 +38,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class GlobalExceptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-    private static final String CHROME_DEVTOOLS_RESOURCE = ".well-known/appspecific/com.chrome.devtools.json";
 
     @ExceptionHandler(UserFacingException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -50,10 +49,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<Void> noResource(NoResourceFoundException exception) {
-        if (CHROME_DEVTOOLS_RESOURCE.equals(exception.getResourcePath())) {
-            return ResponseEntity.noContent().build();
-        }
-
         return ResponseEntity.notFound().build();
     }
 
