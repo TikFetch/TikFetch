@@ -66,6 +66,7 @@ app:
     proxy: ${YT_DLP_PROXY:}
     user-agent: ${YT_DLP_USER_AGENT:}
     extractor-args: ${YT_DLP_EXTRACTOR_ARGS:}
+    ffmpeg-location: ${YT_DLP_FFMPEG_LOCATION:}
     format: ${YT_DLP_FORMAT:best[vcodec=h264][ext=mp4]/best[ext=mp4]/best}
     socket-timeout-seconds: ${YT_DLP_SOCKET_TIMEOUT_SECONDS:60}
     retries: ${YT_DLP_RETRIES:10}

@@ -398,6 +398,7 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
         addOption(command, "--proxy", properties.ytDlp().proxy());
         addOption(command, "--user-agent", properties.ytDlp().userAgent());
         addOption(command, "--extractor-args", properties.ytDlp().extractorArgs());
+        addOption(command, "--ffmpeg-location", properties.ytDlp().ffmpegLocation());
         addOption(command, "--socket-timeout", String.valueOf(properties.ytDlp().socketTimeoutSeconds()));
         addOption(command, "--retries", String.valueOf(properties.ytDlp().retries()));
         addOption(command, "--extractor-retries", String.valueOf(properties.ytDlp().extractorRetries()));

@@ -79,6 +79,7 @@ public record AppProperties(
         String proxy,
         String userAgent,
         String extractorArgs,
+        String ffmpegLocation,
         @NotBlank String format,
         @Min(1) int socketTimeoutSeconds,
         @Min(0) int retries,
