@@ -28,6 +28,8 @@ public record SystemInfoView(
     String totalSpace,
     String usableSpace,
     String healthStatus,
+    String buildVersion,
+    String buildTime,
     long successfulVideos,
     long attempts
 ) {

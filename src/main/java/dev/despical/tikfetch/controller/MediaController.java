@@ -35,6 +35,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * @author Despical
@@ -142,6 +149,40 @@ public class MediaController {
                 .build()
                 .toString())
             .body(resource);
+    }
+
+    @GetMapping("/gallery/{id}/all")
+    public ResponseEntity<StreamingResponseBody> galleryArchive(@PathVariable Long id) {
+        var video = videoRepository.findById(id)
+            .filter(item -> item.getStatus() == DownloadStatus.SUCCESS)
+            .orElseThrow(() -> new UserFacingException("Photo gallery not found."));
+        var items = mediaItemRepository.findByVideoOrderByPositionIndexAsc(video);
+
+        if (items.isEmpty()) {
+            throw new UserFacingException("Photo gallery not found.");
+        }
+
+        StreamingResponseBody body = outputStream -> {
+            try (ZipOutputStream zip = new ZipOutputStream(outputStream)) {
+                for (var item : items) {
+                    Path path = storageService.resolveStoredPath(item.getMediaPath());
+                    ZipEntry entry = new ZipEntry("tikfetch-photo-%02d.%s".formatted(item.getPositionIndex() + 1, extensionOf(item.getMediaPath())));
+                    zip.putNextEntry(entry);
+                    Files.copy(path, zip);
+                    zip.closeEntry();
+                }
+            } catch (IOException exception) {
+                throw new UserFacingException("Could not create photo gallery archive.", exception);
+            }
+        };
+
+        return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType("application/zip"))
+            .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                .filename("tikfetch.despical.dev-gallery-%s.zip".formatted(video.getId()))
+                .build()
+                .toString())
+            .body(body);
     }
 
     private String downloadFileName(Long id) {

@@ -26,8 +26,13 @@ import dev.despical.tikfetch.repository.DownloadedVideoRepository;
 import dev.despical.tikfetch.storage.LocalFileStorageService;
 
 import java.io.File;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.info.BuildProperties;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -39,10 +44,15 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SystemInfoService {
 
+    private static final DateTimeFormatter BUILD_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+        .withZone(ZoneId.systemDefault());
+
     private final LocalFileStorageService storageService;
     private final DownloadedVideoRepository videoRepository;
     private final DownloadAttemptRepository attemptRepository;
     private final VideoViewMapper mapper;
+    @Nullable
+    private final BuildProperties buildProperties;
 
     public SystemInfoView current() {
         File root = storageService.storageRoot().toFile();
@@ -63,9 +73,27 @@ public class SystemInfoService {
             format(root.getTotalSpace()),
             format(root.getUsableSpace()),
             healthStatus,
+            buildVersion(),
+            buildTime(),
             successfulVideos,
             attempts
         );
+    }
+
+    private String buildVersion() {
+        return buildProperties == null ? "Development" : buildProperties.getVersion();
+    }
+
+    private String buildTime() {
+        if (buildProperties == null) {
+            return "Not available";
+        }
+
+        try {
+            return BUILD_TIME_FORMATTER.format(Instant.parse(buildProperties.get("time")));
+        } catch (RuntimeException exception) {
+            return "Not available";
+        }
     }
 
     private String format(long bytes) {

@@ -63,6 +63,10 @@
                            data-gallery-download
                            class="rounded-md bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800"
                            th:text="${video.image} ? 'Download photo' : 'Download video'">Download video</a>
+                        <a th:if="${video.image && #lists.size(galleryImages) > 1}" th:href="@{/media/gallery/{id}/all(id=${video.id})}"
+                           class="rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-950 hover:bg-slate-50">
+                            Save All
+                        </a>
                         <a th:if="${video.audioDownloadUrl != null}" th:href="${video.audioDownloadUrl}"
                            class="rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-950 hover:bg-slate-50">
                             Download MP3

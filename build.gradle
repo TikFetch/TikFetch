@@ -151,6 +151,10 @@ tasks.named('bootRun') {
     environment localEnv.get()
 }
 
+springBoot {
+    buildInfo()
+}
+
 flyway {
     def flywayUrl = providers.gradleProperty('flywayUrl').orElse(providers.environmentVariable('FLYWAY_URL')).orNull
     def flywayUser = providers.gradleProperty('flywayUser').orElse(providers.environmentVariable('FLYWAY_USER')).orNull
