@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="page(title, content)">
 <head
-    th:with="appName=${app != null ? app.name : 'TikFetch'}, pageTitle=${title != null && !title.isBlank() ? title : appName}, appUrl=${app != null ? app.baseUrl : 'https://www.tikfetch.despical.dev'}, description='Download TikTok videos and photo posts without watermark or ads. Paste a public TikTok link and save MP4 videos or JPEG photos with TikFetch.'">
+    th:with="appName=${app != null ? app.name : 'TikFetch'}, pageTitle=${title != null && !title.isBlank() ? title : appName}, appUrl=${app != null ? app.baseUrl : 'https://www.tikfetch.despical.dev'}, description='Download TikTok videos, photo posts, galleries, and MP3 audio without watermark or ads. Paste a public TikTok link and save media with TikFetch.'">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="${pageTitle == appName ? appName : pageTitle + ' | ' + appName}">TikFetch</title>

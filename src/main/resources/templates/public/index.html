@@ -1,14 +1,14 @@
 <!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: page('TikTok Video and Photo Downloader', ~{::content})}">
+      th:replace="~{fragments/layout :: page('TikTok Video, Photo and MP3 Downloader', ~{::content})}">
 <main th:fragment="content" class="with-site-header">
     <div th:replace="~{fragments/header :: header}"></div>
     <section class="hero-surface">
         <div class="mx-auto flex min-h-[62vh] max-w-6xl flex-col items-center justify-center px-6 py-10 text-center">
             <h1 class="max-w-4xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Download TikTok
-                videos and photos without watermark.</h1>
-            <p class="mt-5 max-w-2xl text-lg leading-8 text-slate-600">Fast, ad-free TikTok saving for public video and
-                photo links. Paste a URL and save MP4 videos or JPEG photos in seconds.</p>
+                videos, photos, and MP3 audio without watermark.</h1>
+            <p class="mt-5 max-w-2xl text-lg leading-8 text-slate-600">Fast, ad-free TikTok saving for public links.
+                Paste a URL and save MP4 videos, JPEG photo galleries, or MP3 audio in seconds.</p>
 
             <div class="mt-8 w-full max-w-3xl rounded-lg border border-slate-200 bg-slate-50 p-5 text-left shadow-sm">
                 <form th:action="@{/download}" th:object="${downloadForm}" method="post" class="space-y-4"
@@ -64,9 +64,8 @@
                         distractions.</p>
                 </div>
                 <div>
-                    <p class="feature-title">Videos and photos</p>
-                    <p class="feature-copy">Fetch MP4 videos and JPEG photo posts, including swipeable TikTok photo
-                        galleries.</p>
+                    <p class="feature-title">MP4, JPEG, and MP3</p>
+                    <p class="feature-copy">Fetch MP4 videos, JPEG photo galleries, and MP3 audio from video posts.</p>
                 </div>
             </div>
         </div>
