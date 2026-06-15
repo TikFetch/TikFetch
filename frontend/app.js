@@ -211,22 +211,64 @@ galleryViewers.forEach((viewer) => {
         }))
         .filter((item) => item.url && item.download);
     let index = 0;
+    let renderToken = 0;
+    const preloadedImages = new Map();
 
-    const render = () => {
-        if (!image || items.length === 0) return;
-        image.src = items[index].url;
+    const preload = (item) => {
+        if (!item || preloadedImages.has(item.url)) {
+            return preloadedImages.get(item?.url);
+        }
 
+        const preloadImage = new Image();
+        preloadImage.decoding = 'async';
+        preloadImage.src = item.url;
+        preloadedImages.set(item.url, preloadImage);
+        return preloadImage;
+    };
+
+    const preloadAround = () => {
+        if (items.length < 2) return;
+
+        preload(items[(index + 1) % items.length]);
+        preload(items[(index - 1 + items.length) % items.length]);
+    };
+
+    const apply = (item) => {
+        image.src = item.url;
         if (download) {
-            download.href = items[index].download;
+            download.href = item.download;
         }
 
         if (counter) {
             counter.textContent = `${index + 1} / ${items.length}`;
         }
 
-        if (size && items[index].size) {
-            size.textContent = items[index].size;
+        if (size && item.size) {
+            size.textContent = item.size;
         }
+    };
+
+    const render = () => {
+        if (!image || items.length === 0) return;
+
+        const token = ++renderToken;
+        const item = items[index];
+        const preloadImage = preload(item);
+        preloadAround();
+
+        const applyIfCurrent = () => {
+            if (token === renderToken) {
+                apply(item);
+            }
+        };
+
+        if (!preloadImage || preloadImage.complete) {
+            applyIfCurrent();
+            return;
+        }
+
+        preloadImage.addEventListener('load', applyIfCurrent, {once: true});
+        preloadImage.addEventListener('error', applyIfCurrent, {once: true});
     };
 
     previous?.addEventListener('click', () => {
@@ -240,6 +282,7 @@ galleryViewers.forEach((viewer) => {
     });
 
     render();
+    items.forEach(preload);
 });
 
 const supportsPasskeys = () => window.PublicKeyCredential && navigator.credentials;
