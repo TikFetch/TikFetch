@@ -91,8 +91,9 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
         boolean readyForCaller = false;
 
         try {
-            Metadata metadata = fetchMetadataOrDefault(url);
             runDownload(url, temporaryDirectory);
+            Metadata metadata = metadataFromInfoJson(temporaryDirectory)
+                .orElseGet(() -> fetchMetadataOrDefault(url));
 
             Optional<Path> videoFile = locateFile(temporaryDirectory, VIDEO_EXTENSIONS);
             Optional<Path> imageFile = locateFile(temporaryDirectory, IMAGE_EXTENSIONS);
@@ -153,15 +154,7 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
 
         try {
             JsonNode root = objectMapper.readTree(result.stdout());
-            String title = text(root, "title").orElse("TikTok video");
-            String author = text(root, "uploader").or(() -> text(root, "creator")).orElse(null);
-            String authorUrl = text(root, "uploader_url").or(() -> text(root, "channel_url")).orElse(null);
-            String id = text(root, "id").orElse(null);
-            Long durationSeconds = root.hasNonNull("duration") ? Math.round(root.get("duration").asDouble()) : null;
-            Long likeCount = longValue(root, "like_count");
-            Long commentCount = longValue(root, "comment_count");
-
-            return new Metadata(title, author, authorUrl, id, durationSeconds, likeCount, commentCount);
+            return metadataFromJson(root);
         } catch (IOException exception) {
             LOGGER.warn("Could not parse yt-dlp metadata JSON", exception);
             return new Metadata("TikTok video", null, null, null, null, null, null);
@@ -181,6 +174,7 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
 
         command.add("--no-part");
         command.add("--write-thumbnail");
+        command.add("--write-info-json");
 
         if (url.mediaKind() == MediaKind.PHOTO) {
             command.add("--skip-download");
@@ -198,6 +192,39 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
         if (result.exitCode() != 0) {
             throw new UserFacingException(cleanYtDlpError(result.stderr()));
         }
+    }
+
+    private Optional<Metadata> metadataFromInfoJson(Path temporaryDirectory) {
+        try (var files = Files.walk(temporaryDirectory)) {
+            return files.filter(Files::isRegularFile)
+                .filter(path -> path.getFileName().toString().endsWith(".info.json"))
+                .findFirst()
+                .flatMap(this::readMetadataFile);
+        } catch (IOException exception) {
+            LOGGER.warn("Could not read yt-dlp info JSON", exception);
+            return Optional.empty();
+        }
+    }
+
+    private Optional<Metadata> readMetadataFile(Path path) {
+        try {
+            return Optional.of(metadataFromJson(objectMapper.readTree(path.toFile())));
+        } catch (IOException exception) {
+            LOGGER.warn("Could not parse yt-dlp info JSON {}", path.getFileName(), exception);
+            return Optional.empty();
+        }
+    }
+
+    private Metadata metadataFromJson(JsonNode root) {
+        String title = text(root, "title").orElse("TikTok video");
+        String author = text(root, "uploader").or(() -> text(root, "creator")).orElse(null);
+        String authorUrl = text(root, "uploader_url").or(() -> text(root, "channel_url")).orElse(null);
+        String id = text(root, "id").orElse(null);
+        Long durationSeconds = root.hasNonNull("duration") ? Math.round(root.get("duration").asDouble()) : null;
+        Long likeCount = longValue(root, "like_count");
+        Long commentCount = longValue(root, "comment_count");
+
+        return new Metadata(title, author, authorUrl, id, durationSeconds, likeCount, commentCount);
     }
 
     private String ytDlpUrl(ValidatedTikTokUrl url) {
