@@ -250,6 +250,7 @@ html {
 }
 
 .admin-table-scroll {
+    overflow-x: auto;
     scrollbar-color: #cbd5e1 transparent;
 }
 
@@ -268,8 +269,36 @@ html {
     justify-content: center;
 }
 
+.admin-videos-table-scroll {
+    overflow-x: hidden;
+}
+
+.admin-videos-table {
+    min-width: 0;
+}
+
+@media (max-width: 767px) {
+    .admin-videos-table-scroll {
+        overflow-x: auto;
+    }
+
+    .admin-videos-table {
+        min-width: 720px;
+    }
+}
+
 .clipboard-input-wrap {
     position: relative;
+}
+
+.clipboard-input-wrap input {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.clipboard-input-wrap.has-input-action input {
+    padding-right: 5.5rem;
 }
 
 .clipboard-input-button {
@@ -296,6 +325,16 @@ html {
 
 .clipboard-input-button:hover {
     background: #1e293b;
+}
+
+@media (max-width: 420px) {
+    .clipboard-input-wrap.has-input-action input {
+        padding-right: 5rem;
+    }
+
+    .clipboard-input-button {
+        padding-inline: 10px;
+    }
 }
 
 .video-metrics {

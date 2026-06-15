@@ -4,15 +4,15 @@
         <h2 class="font-semibold text-slate-950">Videos</h2>
     </div>
     <div th:if="${#lists.isEmpty(videos)}" class="p-6 text-sm text-slate-600">No video records yet.</div>
-    <div th:if="${!#lists.isEmpty(videos)}" class="admin-table-scroll overflow-x-auto">
-        <table class="min-w-[720px] w-full table-fixed divide-y divide-slate-200 text-sm">
+    <div th:if="${!#lists.isEmpty(videos)}" class="admin-table-scroll admin-videos-table-scroll">
+        <table class="admin-videos-table w-full table-fixed divide-y divide-slate-200 text-sm">
             <thead class="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
             <tr>
                 <th class="w-[42%] border-r border-slate-200 px-4 py-3">Title</th>
-                <th class="w-24 border-r border-slate-200 px-4 py-3">Status</th>
-                <th class="w-24 border-r border-slate-200 px-4 py-3">Size</th>
-                <th class="w-36 border-r border-slate-200 px-4 py-3">Downloaded</th>
-                <th class="w-28 px-4 py-3">Actions</th>
+                <th class="w-24 border-r border-slate-200 px-4 py-3 text-center">Status</th>
+                <th class="w-24 border-r border-slate-200 px-4 py-3 text-center">Size</th>
+                <th class="w-36 border-r border-slate-200 px-4 py-3 text-center">Downloaded</th>
+                <th class="w-28 px-4 py-3 text-center">Actions</th>
             </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -26,11 +26,11 @@
                     <p th:if="${!compact}" class="mt-1 truncate text-xs text-slate-500" th:title="${video.videoPath}"
                        th:text="${video.videoPath}">Path</p>
                 </td>
-                <td class="border-r border-slate-200 px-4 py-3" th:text="${video.status}">SUCCESS</td>
-                <td class="whitespace-nowrap border-r border-slate-200 px-4 py-3" th:text="${video.fileSize}">Unknown</td>
-                <td class="whitespace-nowrap border-r border-slate-200 px-4 py-3" th:text="${video.downloadedAt}">Now</td>
+                <td class="border-r border-slate-200 px-4 py-3 text-center" th:text="${video.status}">SUCCESS</td>
+                <td class="whitespace-nowrap border-r border-slate-200 px-4 py-3 text-center" th:text="${video.fileSize}">Unknown</td>
+                <td class="whitespace-nowrap border-r border-slate-200 px-4 py-3 text-center" th:text="${video.downloadedAt}">Now</td>
                 <td class="px-4 py-3">
-                    <div class="flex flex-col items-start gap-2 sm:flex-row">
+                    <div class="flex flex-col items-center gap-2">
                         <a th:if="${video.status == 'SUCCESS'}" th:href="@{/media/videos/{id}(id=${video.id})}"
                            class="admin-action-button rounded-md border border-slate-300 px-2 py-1 text-xs font-medium hover:bg-slate-50">Download</a>
                         <form th:action="@{/admin/videos/{id}/delete(id=${video.id})}" method="post">

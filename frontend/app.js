@@ -84,15 +84,35 @@ const isTikTokUrl = (value) => {
 
 const showButton = (button) => {
     if (!button) return;
+
+    if (button.hideTimeout) {
+        window.clearTimeout(button.hideTimeout);
+        button.hideTimeout = null;
+    }
+
+    button.closest('[data-clipboard-input]')?.classList.add('has-input-action');
     button.hidden = false;
     requestAnimationFrame(() => button.classList.add('is-visible'));
 };
 
 const hideButton = (button, afterHide) => {
     if (!button || button.hidden) return;
+
+    if (button.hideTimeout) {
+        window.clearTimeout(button.hideTimeout);
+    }
+
     button.classList.remove('is-visible');
-    window.setTimeout(() => {
+    button.hideTimeout = window.setTimeout(() => {
+        button.hideTimeout = null;
         button.hidden = true;
+
+        const wrap = button.closest('[data-clipboard-input]');
+        const hasVisibleAction = wrap?.querySelector('.clipboard-input-button:not([hidden])');
+
+        if (!hasVisibleAction) {
+            wrap?.classList.remove('has-input-action');
+        }
         afterHide?.();
     }, 180);
 };
@@ -101,7 +121,13 @@ inputWraps.forEach((wrap) => {
     const input = wrap.querySelector('input[type="url"]');
     const pasteButton = wrap.querySelector('[data-paste-tiktok]');
     const clearButton = wrap.querySelector('[data-clear-input]');
-    let clipboardTikTokUrl = '';
+    const error = wrap.closest('form')?.querySelector('[data-download-error]');
+
+    const clearError = () => {
+        if (!error) return;
+        error.hidden = true;
+        error.textContent = '';
+    };
 
     const syncButtons = () => {
         if (input?.value.trim()) {
@@ -111,57 +137,38 @@ inputWraps.forEach((wrap) => {
         }
 
         hideButton(clearButton);
-        if (clipboardTikTokUrl) {
-            showButton(pasteButton);
-        } else {
-            hideButton(pasteButton);
-        }
-    };
-
-    const refreshClipboard = async () => {
-        if (!navigator.clipboard?.readText) {
-            syncButtons();
-            return;
-        }
-
-        try {
-            const clipboardText = await navigator.clipboard.readText();
-            clipboardTikTokUrl = isTikTokUrl(clipboardText) ? clipboardText.trim() : '';
-        } catch {
-            clipboardTikTokUrl = '';
-        }
-
-        syncButtons();
+        showButton(pasteButton);
     };
 
     pasteButton?.addEventListener('click', async () => {
         if (!input) return;
-        if (!clipboardTikTokUrl) {
-            await refreshClipboard();
-        }
-        if (!clipboardTikTokUrl) return;
+        clearError();
 
-        input.value = clipboardTikTokUrl;
+        try {
+            const clipboardText = await navigator.clipboard?.readText?.();
+
+            if (clipboardText) {
+                input.value = clipboardText.trim();
+            }
+        } catch {
+            // Keep the paste button visible when clipboard access is denied.
+        }
+
         input.focus();
-        hideButton(pasteButton, () => showButton(clearButton));
+        syncButtons();
     });
 
     clearButton?.addEventListener('click', () => {
         if (!input) return;
+        clearError();
         input.value = '';
         input.focus();
-        hideButton(clearButton, () => {
-            if (clipboardTikTokUrl) {
-                showButton(pasteButton);
-            }
-        });
+        syncButtons();
     });
 
-    input?.addEventListener('focus', refreshClipboard);
-    input?.addEventListener('click', refreshClipboard);
     input?.addEventListener('input', syncButtons);
     input?.addEventListener('paste', () => window.setTimeout(syncButtons, 0));
-    refreshClipboard();
+    syncButtons();
 });
 
 if (scrollTopButton) {
@@ -173,6 +180,7 @@ if (scrollTopButton) {
     scrollTopButton.addEventListener('click', () => {
         window.scrollTo({top: 0, behavior: 'smooth'});
     });
+
     updateScrollButton();
 }
 
@@ -207,12 +215,15 @@ galleryViewers.forEach((viewer) => {
     const render = () => {
         if (!image || items.length === 0) return;
         image.src = items[index].url;
+
         if (download) {
             download.href = items[index].download;
         }
+
         if (counter) {
             counter.textContent = `${index + 1} / ${items.length}`;
         }
+
         if (size && items[index].size) {
             size.textContent = items[index].size;
         }
@@ -247,6 +258,7 @@ const base64UrlToBuffer = (value) => {
 
 const bufferToBase64Url = (buffer) => {
     if (!buffer) return undefined;
+
     const bytes = new Uint8Array(buffer);
     let binary = '';
 

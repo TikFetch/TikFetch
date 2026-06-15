@@ -40,14 +40,15 @@
                         No passkeys have been added yet.
                     </div>
 
-                    <div th:if="${!#lists.isEmpty(passkeys)}" class="overflow-hidden rounded-md border border-slate-200">
-                        <table class="w-full text-left text-sm">
+                    <div th:if="${!#lists.isEmpty(passkeys)}"
+                         class="admin-table-scroll overflow-x-auto rounded-md border border-slate-200">
+                        <table class="min-w-[560px] w-full table-fixed text-left text-sm">
                             <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                             <tr>
-                                <th class="px-4 py-3">Label</th>
-                                <th class="px-4 py-3">Created</th>
-                                <th class="px-4 py-3">Last used</th>
-                                <th class="px-4 py-3 text-right">Action</th>
+                                <th class="w-[32%] px-4 py-3">Label</th>
+                                <th class="w-[24%] px-4 py-3">Created</th>
+                                <th class="w-[24%] px-4 py-3">Last used</th>
+                                <th class="w-[20%] px-4 py-3 text-right">Action</th>
                             </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-200">
