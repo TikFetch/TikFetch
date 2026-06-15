@@ -179,6 +179,7 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
         command.add("--write-info-json");
 
         if (url.mediaKind() == MediaKind.PHOTO) {
+            command.add("--write-pages");
             command.add("--skip-download");
         } else {
             command.add("-f");
@@ -272,7 +273,11 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
     }
 
     private List<Path> fetchPhotoGallery(ValidatedTikTokUrl url, Path temporaryDirectory) {
-        List<String> imageUrls = extractPhotoImageUrls(url);
+        List<String> imageUrls = extractPhotoImageUrls(temporaryDirectory);
+
+        if (imageUrls.isEmpty()) {
+            imageUrls = extractPhotoImageUrls(url);
+        }
 
         if (imageUrls.isEmpty()) {
             return List.of();
@@ -289,6 +294,30 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
         }
 
         return files;
+    }
+
+    private List<String> extractPhotoImageUrls(Path temporaryDirectory) {
+        try (var files = Files.walk(temporaryDirectory)) {
+            return files.filter(Files::isRegularFile)
+                .filter(path -> path.getFileName().toString().endsWith(".dump"))
+                .map(this::readStringQuietly)
+                .map(this::parseImagePostUrls)
+                .filter(urls -> !urls.isEmpty())
+                .findFirst()
+                .orElse(List.of());
+        } catch (IOException exception) {
+            LOGGER.warn("Could not read yt-dlp page dump for TikTok photo gallery", exception);
+            return List.of();
+        }
+    }
+
+    private String readStringQuietly(Path path) {
+        try {
+            return Files.readString(path, StandardCharsets.UTF_8);
+        } catch (IOException exception) {
+            LOGGER.warn("Could not read yt-dlp page dump {}", path.getFileName(), exception);
+            return "";
+        }
     }
 
     private List<String> extractPhotoImageUrls(ValidatedTikTokUrl url) {
