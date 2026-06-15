@@ -78,7 +78,7 @@ app:
     secure: ${COOKIE_SECURE:false}
 
   rate-limit:
-    download-capacity: ${APP_RATE_LIMIT_DOWNLOAD_CAPACITY:100}
+    download-capacity: ${APP_RATE_LIMIT_DOWNLOAD_CAPACITY:10}
     download-refill-minutes: ${APP_RATE_LIMIT_DOWNLOAD_REFILL_MINUTES:1}
     login-capacity: ${APP_RATE_LIMIT_LOGIN_CAPACITY:5}
     login-refill-minutes: ${APP_RATE_LIMIT_LOGIN_REFILL_MINUTES:5}
