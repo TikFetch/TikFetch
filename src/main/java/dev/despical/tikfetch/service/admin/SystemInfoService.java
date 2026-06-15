@@ -32,7 +32,6 @@ import java.time.format.DateTimeFormatter;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.info.BuildProperties;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -44,14 +43,12 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SystemInfoService {
 
-    private static final DateTimeFormatter BUILD_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
-        .withZone(ZoneId.systemDefault());
+    private static final DateTimeFormatter BUILD_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneId.systemDefault());
 
     private final LocalFileStorageService storageService;
     private final DownloadedVideoRepository videoRepository;
     private final DownloadAttemptRepository attemptRepository;
     private final VideoViewMapper mapper;
-    @Nullable
     private final BuildProperties buildProperties;
 
     public SystemInfoView current() {
@@ -90,8 +87,17 @@ public class SystemInfoService {
         }
 
         try {
-            return BUILD_TIME_FORMATTER.format(Instant.parse(buildProperties.get("time")));
-        } catch (RuntimeException exception) {
+            String time = buildProperties.get("time");
+
+            if (time == null || time.isBlank()) {
+                return "Not available";
+            }
+
+            long epochMilli = Long.parseLong(time);
+            Instant buildInstant = Instant.ofEpochMilli(epochMilli);
+
+            return BUILD_TIME_FORMATTER.format(buildInstant);
+        } catch (RuntimeException _) {
             return "Not available";
         }
     }
