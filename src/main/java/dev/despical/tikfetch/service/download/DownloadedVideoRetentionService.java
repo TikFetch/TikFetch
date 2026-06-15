@@ -74,8 +74,9 @@ public class DownloadedVideoRetentionService {
 
         boolean videoDeleted = storageService.deleteIfStored(video.getVideoPath());
         boolean thumbnailDeleted = storageService.deleteIfStored(video.getThumbnailPath());
+        boolean audioDeleted = storageService.deleteIfStored(video.getAudioPath());
 
-        if (!videoDeleted || !thumbnailDeleted) {
+        if (!videoDeleted || !thumbnailDeleted || !audioDeleted) {
             LOGGER.warn("One or more files could not be deleted for downloaded video id {}", video.getId());
         }
 

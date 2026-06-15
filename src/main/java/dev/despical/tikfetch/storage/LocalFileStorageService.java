@@ -50,6 +50,7 @@ public class LocalFileStorageService {
 
     private static final Set<String> MEDIA_EXTENSIONS = Set.of("mp4", "webm", "mov", "mkv", "jpg", "jpeg", "png", "webp", "image");
     private static final Set<String> IMAGE_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp", "image");
+    private static final Set<String> AUDIO_EXTENSIONS = Set.of("mp3");
 
     private final Path storageRoot;
 
@@ -61,6 +62,7 @@ public class LocalFileStorageService {
         try {
             Files.createDirectories(storageRoot);
             Files.createDirectories(storageRoot.resolve("videos"));
+            Files.createDirectories(storageRoot.resolve("audio"));
             Files.createDirectories(storageRoot.resolve("thumbnails"));
             Files.createDirectories(storageRoot.resolve("tmp"));
         } catch (IOException exception) {
@@ -84,6 +86,10 @@ public class LocalFileStorageService {
 
     public StoredFile storeThumbnail(Path sourceFile, String sourceId) {
         return store(sourceFile, "thumbnails", sourceId, IMAGE_EXTENSIONS, "image/jpeg");
+    }
+
+    public StoredFile storeAudio(Path sourceFile, String sourceId) {
+        return store(sourceFile, "audio", sourceId, AUDIO_EXTENSIONS, "audio/mpeg");
     }
 
     public Resource loadAsResource(String relativePath) {

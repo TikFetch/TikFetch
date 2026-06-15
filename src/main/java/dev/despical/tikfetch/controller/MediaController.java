@@ -66,6 +66,23 @@ public class MediaController {
             .body(resource);
     }
 
+    @GetMapping("/audio/{id}")
+    public ResponseEntity<Resource> audio(@PathVariable Long id) {
+        var video = videoRepository.findById(id)
+            .filter(item -> item.getStatus() == DownloadStatus.SUCCESS)
+            .filter(item -> item.getAudioPath() != null)
+            .orElseThrow(() -> new UserFacingException("MP3 audio is not available for this download."));
+        Resource resource = storageService.loadAsResource(video.getAudioPath());
+
+        return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType(video.getAudioMimeType() == null ? "audio/mpeg" : video.getAudioMimeType()))
+            .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                .filename("tikfetch.despical.dev-audio-%s.mp3".formatted(video.getId()))
+                .build()
+                .toString())
+            .body(resource);
+    }
+
     @GetMapping("/stream/{id}")
     public ResponseEntity<Resource> stream(@PathVariable Long id, @RequestParam(required = false) Integer position) {
         var video = videoRepository.findById(id)

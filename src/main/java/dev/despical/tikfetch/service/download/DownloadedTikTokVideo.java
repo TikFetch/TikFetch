@@ -35,6 +35,7 @@ public record DownloadedTikTokVideo(
     Long likeCount,
     Long commentCount,
     Path videoFile,
+    Path audioFile,
     boolean image,
     List<Path> galleryImageFiles,
     Path thumbnailFile,

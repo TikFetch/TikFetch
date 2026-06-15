@@ -29,6 +29,7 @@ public record LatestVideoView(
     String thumbnailUrl,
     String originalUrl,
     String streamUrl,
+    String audioDownloadUrl,
     boolean image,
     String authorUrl,
     String author,

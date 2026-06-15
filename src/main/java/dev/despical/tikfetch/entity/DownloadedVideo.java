@@ -79,6 +79,15 @@ public class DownloadedVideo {
     @Column(name = "file_size")
     private Long fileSize;
 
+    @Column(name = "audio_path", length = 1024)
+    private String audioPath;
+
+    @Column(name = "audio_mime_type", length = 120)
+    private String audioMimeType;
+
+    @Column(name = "audio_file_size")
+    private Long audioFileSize;
+
     @Column(name = "duration_seconds")
     private Long durationSeconds;
 

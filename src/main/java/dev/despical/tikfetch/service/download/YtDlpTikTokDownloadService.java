@@ -65,6 +65,7 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
 
     private static final Set<String> VIDEO_EXTENSIONS = Set.of("mp4", "webm", "mov", "mkv");
     private static final Set<String> IMAGE_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp", "image");
+    private static final Set<String> AUDIO_EXTENSIONS = Set.of("mp3");
 
     private static final Pattern IMAGE_POST_PATTERN = Pattern.compile("\"imagePost\"\\s*:\\s*\\{\"images\"\\s*:\\s*\\[(.*?)]\\s*,\\s*\"cover\"", Pattern.DOTALL);
     private static final Pattern IMAGE_ENTRY_PATTERN = Pattern.compile("\\{\"imageURL\"\\s*:\\s*\\{\"urlList\"\\s*:\\s*\\[(.*?)]", Pattern.DOTALL);
@@ -110,10 +111,11 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
                 .orElseThrow(() -> new UserFacingException("yt-dlp finished, but no supported media file was created."));
 
             boolean image = videoFile.isEmpty();
+            Path audioFile = image ? null : downloadAudio(url, temporaryDirectory).orElse(null);
             Path thumbnailFile = image ? null : imageFile.orElse(null);
 
             readyForCaller = true;
-            return new DownloadedTikTokVideo(metadata.title(), metadata.author(), metadata.authorUrl(), metadata.id(), metadata.durationSeconds(), metadata.likeCount(), metadata.commentCount(), mediaFile, image, galleryImages, thumbnailFile, temporaryDirectory);
+            return new DownloadedTikTokVideo(metadata.title(), metadata.author(), metadata.authorUrl(), metadata.id(), metadata.durationSeconds(), metadata.likeCount(), metadata.commentCount(), mediaFile, audioFile, image, galleryImages, thumbnailFile, temporaryDirectory);
         } finally {
             if (!readyForCaller) {
                 storageService.deleteDirectoryQuietly(temporaryDirectory);
@@ -192,6 +194,40 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
         if (result.exitCode() != 0) {
             throw new UserFacingException(cleanYtDlpError(result.stderr()));
         }
+    }
+
+    private Optional<Path> downloadAudio(ValidatedTikTokUrl url, Path temporaryDirectory) {
+        String outputTemplate = temporaryDirectory.resolve("audio.%(ext)s").toString();
+        List<String> command = new ArrayList<>();
+        command.add(properties.ytDlp().path());
+
+        addCommonOptions(command);
+        command.add("--no-playlist");
+        command.add("--no-part");
+        command.add("--extract-audio");
+        command.add("--audio-format");
+        command.add("mp3");
+        command.add("--audio-quality");
+        command.add("0");
+        command.add("-o");
+        command.add(outputTemplate);
+        command.add(ytDlpUrl(url));
+
+        ProcessResult result;
+
+        try {
+            result = run(command, temporaryDirectory, Duration.ofSeconds(properties.ytDlp().timeoutSeconds()));
+        } catch (UserFacingException exception) {
+            LOGGER.warn("Could not extract TikTok audio as MP3: {}", exception.getMessage());
+            return Optional.empty();
+        }
+
+        if (result.exitCode() != 0) {
+            LOGGER.warn("Could not extract TikTok audio as MP3: {}", cleanYtDlpError(result.stderr()));
+            return Optional.empty();
+        }
+
+        return locateFile(temporaryDirectory, AUDIO_EXTENSIONS);
     }
 
     private Optional<Metadata> metadataFromInfoJson(Path temporaryDirectory) {

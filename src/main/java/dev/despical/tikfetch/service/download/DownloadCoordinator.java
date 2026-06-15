@@ -86,6 +86,9 @@ public class DownloadCoordinator {
                 StoredFile storedThumbnail = downloaded.thumbnailFile() == null
                     ? null
                     : storageService.storeThumbnail(downloaded.thumbnailFile(), downloaded.sourceVideoId());
+                StoredFile storedAudio = downloaded.audioFile() == null
+                    ? null
+                    : storageService.storeAudio(downloaded.audioFile(), downloaded.sourceVideoId());
 
                 video.setTitle(downloaded.title() == null || downloaded.title().isBlank() ? "TikTok video" : downloaded.title());
                 video.setAuthor(downloaded.author());
@@ -97,6 +100,9 @@ public class DownloadCoordinator {
                 video.setVideoPath(storedVideo.relativePath());
                 video.setMimeType(storedVideo.mimeType());
                 video.setFileSize(storedVideo.size());
+                video.setAudioPath(storedAudio == null ? null : storedAudio.relativePath());
+                video.setAudioMimeType(storedAudio == null ? null : storedAudio.mimeType());
+                video.setAudioFileSize(storedAudio == null ? null : storedAudio.size());
                 video.setThumbnailPath(storedThumbnail == null ? null : storedThumbnail.relativePath());
                 video.setStatus(DownloadStatus.SUCCESS);
                 video.setDownloadedAt(Instant.now());

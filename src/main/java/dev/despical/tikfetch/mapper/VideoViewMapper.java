@@ -45,6 +45,7 @@ public interface VideoViewMapper {
 
     @Mapping(target = "thumbnailUrl", expression = "java(thumbnailUrl(video))")
     @Mapping(target = "streamUrl", expression = "java(streamUrl(video))")
+    @Mapping(target = "audioDownloadUrl", expression = "java(audioDownloadUrl(video))")
     @Mapping(target = "image", expression = "java(isImage(video))")
     @Mapping(target = "duration", expression = "java(formatDuration(video.getDurationSeconds(), isImage(video)))")
     @Mapping(target = "fileSize", expression = "java(humanReadableByteCount(video.getFileSize()))")
@@ -68,6 +69,10 @@ public interface VideoViewMapper {
 
     default String streamUrl(DownloadedVideo video) {
         return "/media/stream/" + video.getId();
+    }
+
+    default String audioDownloadUrl(DownloadedVideo video) {
+        return video.getAudioPath() == null ? null : "/media/audio/" + video.getId();
     }
 
     default boolean isImage(DownloadedVideo video) {
