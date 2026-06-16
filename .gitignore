@@ -17,6 +17,7 @@ src/main/resources/static/dist/
 .env
 .env.*
 !.env.example
+!.env.docker.example
 *.local
 
 # Logs and temporary files
