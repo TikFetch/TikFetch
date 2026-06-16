@@ -5,7 +5,9 @@ FROM eclipse-temurin:25-jdk-noble AS build
 WORKDIR /workspace
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends nodejs npm \
+    && apt-get install -y --no-install-recommends ca-certificates curl gnupg \
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/*
 
 COPY gradlew gradlew.bat settings.gradle build.gradle package.json package-lock.json vite.config.js ./
@@ -28,7 +30,7 @@ ENV SPRING_PROFILES_ACTIVE=production \
 WORKDIR /app
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl ffmpeg \
+    && apt-get install -y --no-install-recommends ca-certificates curl ffmpeg python3 \
     && curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
     && chmod +x /usr/local/bin/yt-dlp \
     && useradd --system --create-home --home-dir /app --shell /usr/sbin/nologin tikfetch \
