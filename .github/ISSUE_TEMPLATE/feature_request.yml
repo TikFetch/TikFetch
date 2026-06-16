@@ -1,0 +1,68 @@
+name: Feature Request
+description: "Suggest an improvement for TikFetch, from downloads and galleries to admin or deployment workflows."
+title: "[FEATURE] "
+labels: ["enhancement"]
+type: feature
+assignees:
+  - Despical
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve TikFetch. Please describe the user-facing value and the workflow you have in mind.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of TikFetch would this improve?
+      multiple: true
+      options:
+        - Public download page
+        - Video downloads
+        - Photo and gallery downloads
+        - MP3/audio downloads
+        - Latest downloads
+        - Admin panel
+        - Metrics and health
+        - Docker/deployment
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Is your feature request related to a problem?
+      description: Explain the pain point, limitation, or workflow issue.
+      placeholder: It is difficult to...
+    validations:
+      required: false
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe the solution you'd like
+      description: Describe the behavior, UI, or backend change you want to see.
+      placeholder: I would like TikFetch to...
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: If you have thought about another approach, describe it here.
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add links, screenshots, examples, or TikTok URL patterns if they help explain the request.
+  - type: checkboxes
+    id: validation
+    attributes:
+      label: Validation
+      options:
+        - label: I have checked for existing issues regarding this feature request.
+          required: true
+        - label: I am willing to help implement this feature if needed.
+          required: false

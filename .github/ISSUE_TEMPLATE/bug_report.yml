@@ -1,4 +1,4 @@
-name: 🐛 Bug Report
+name: Bug Report
 description: "Found a glitch or unexpected behavior? Help us squash it by providing a detailed report."
 title: "[BUG] "
 labels: ["bug"]
