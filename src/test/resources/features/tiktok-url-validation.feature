@@ -21,6 +21,11 @@ Feature: TikTok URL validation
     Then the normalized URL should be "https://vm.tiktok.com/abc123"
     And the media kind should be "SHORT"
 
+  Scenario: Accept a mobile share TikTok short URL
+    When the user validates the TikTok URL "https://vt.tiktok.com/ZSQWFjSKx/"
+    Then the normalized URL should be "https://vt.tiktok.com/ZSQWFjSKx/"
+    And the media kind should be "SHORT"
+
   Scenario: Reject a non-TikTok URL
     When the user validates the TikTok URL "https://example.com/video/123"
     Then the URL should be rejected with a message containing "Only TikTok"

@@ -74,12 +74,14 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
     private final AppProperties properties;
     private final LocalFileStorageService storageService;
     private final ObjectMapper objectMapper;
+    private final TikTokUrlResolver urlResolver;
     private final HttpClient httpClient;
 
-    public YtDlpTikTokDownloadService(AppProperties properties, LocalFileStorageService storageService, ObjectMapper objectMapper) {
+    public YtDlpTikTokDownloadService(AppProperties properties, LocalFileStorageService storageService, ObjectMapper objectMapper, TikTokUrlResolver urlResolver) {
         this.properties = properties;
         this.storageService = storageService;
         this.objectMapper = objectMapper;
+        this.urlResolver = urlResolver;
         this.httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(properties.ytDlp().socketTimeoutSeconds()))
             .followRedirects(HttpClient.Redirect.NORMAL)
@@ -92,14 +94,16 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
         boolean readyForCaller = false;
 
         try {
-            runDownload(url, temporaryDirectory);
+            DownloadTarget target = resolveDownloadTarget(url);
+
+            runDownload(target, temporaryDirectory);
             Metadata metadata = metadataFromInfoJson(temporaryDirectory)
-                .orElseGet(() -> fetchMetadataOrDefault(url));
+                .orElseGet(() -> fetchMetadataOrDefault(target));
 
             Optional<Path> videoFile = locateFile(temporaryDirectory, VIDEO_EXTENSIONS);
             Optional<Path> imageFile = locateFile(temporaryDirectory, IMAGE_EXTENSIONS);
-            List<Path> fetchedGalleryImages = url.mediaKind() == MediaKind.PHOTO
-                ? fetchPhotoGallery(url, temporaryDirectory)
+            List<Path> fetchedGalleryImages = target.mediaKind() == MediaKind.PHOTO
+                ? fetchPhotoGallery(target, temporaryDirectory)
                 : List.of();
 
             List<Path> galleryImages = fetchedGalleryImages.isEmpty() && imageFile.isPresent()
@@ -111,7 +115,7 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
                 .orElseThrow(() -> new UserFacingException("yt-dlp finished, but no supported media file was created."));
 
             boolean image = videoFile.isEmpty();
-            Path audioFile = image ? null : downloadAudio(url, temporaryDirectory).orElse(null);
+            Path audioFile = image ? null : downloadAudio(target, temporaryDirectory).orElse(null);
             Path thumbnailFile = image ? null : imageFile.orElse(null);
 
             readyForCaller = true;
@@ -123,29 +127,29 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
         }
     }
 
-    private Metadata fetchMetadataOrDefault(ValidatedTikTokUrl url) {
+    private Metadata fetchMetadataOrDefault(DownloadTarget target) {
         try {
-            return fetchMetadata(url);
+            return fetchMetadata(target);
         } catch (UserFacingException exception) {
             LOGGER.warn("Could not fetch TikTok metadata before download, continuing with fallback metadata: {}", exception.getMessage());
             return new Metadata("TikTok video", null, null, null, null, null, null);
         }
     }
 
-    private Metadata fetchMetadata(ValidatedTikTokUrl url) {
+    private Metadata fetchMetadata(DownloadTarget target) {
         List<String> command = new ArrayList<>();
         command.add(properties.ytDlp().path());
 
         addCommonOptions(command);
 
-        if (url.mediaKind() != MediaKind.PHOTO) {
+        if (target.mediaKind() != MediaKind.PHOTO) {
             command.add("--no-playlist");
         }
 
         command.addAll(List.of(
             "--dump-single-json",
             "--skip-download",
-            ytDlpUrl(url)
+            target.ytDlpUrl()
         ));
 
         ProcessResult result = run(command, null, Duration.ofSeconds(properties.ytDlp().timeoutSeconds()));
@@ -163,14 +167,14 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
         }
     }
 
-    private void runDownload(ValidatedTikTokUrl url, Path temporaryDirectory) {
-        String outputTemplate = temporaryDirectory.resolve(url.mediaKind() == MediaKind.PHOTO ? "media.%(playlist_index)s.%(ext)s" : "video.%(ext)s").toString();
+    private void runDownload(DownloadTarget target, Path temporaryDirectory) {
+        String outputTemplate = temporaryDirectory.resolve(target.mediaKind() == MediaKind.PHOTO ? "media.%(playlist_index)s.%(ext)s" : "video.%(ext)s").toString();
         List<String> command = new ArrayList<>();
         command.add(properties.ytDlp().path());
 
         addCommonOptions(command);
 
-        if (url.mediaKind() != MediaKind.PHOTO) {
+        if (target.mediaKind() != MediaKind.PHOTO) {
             command.add("--no-playlist");
         }
 
@@ -178,7 +182,7 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
         command.add("--write-thumbnail");
         command.add("--write-info-json");
 
-        if (url.mediaKind() == MediaKind.PHOTO) {
+        if (target.mediaKind() == MediaKind.PHOTO) {
             command.add("--write-pages");
             command.add("--skip-download");
         } else {
@@ -188,7 +192,7 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
 
         command.add("-o");
         command.add(outputTemplate);
-        command.add(ytDlpUrl(url));
+        command.add(target.ytDlpUrl());
 
         ProcessResult result = run(command, temporaryDirectory, Duration.ofSeconds(properties.ytDlp().timeoutSeconds()));
 
@@ -197,7 +201,7 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
         }
     }
 
-    private Optional<Path> downloadAudio(ValidatedTikTokUrl url, Path temporaryDirectory) {
+    private Optional<Path> downloadAudio(DownloadTarget target, Path temporaryDirectory) {
         String outputTemplate = temporaryDirectory.resolve("audio.%(ext)s").toString();
         List<String> command = new ArrayList<>();
         command.add(properties.ytDlp().path());
@@ -212,7 +216,7 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
         command.add("0");
         command.add("-o");
         command.add(outputTemplate);
-        command.add(ytDlpUrl(url));
+        command.add(target.ytDlpUrl());
 
         ProcessResult result;
 
@@ -274,11 +278,17 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
         return normalizedUrl;
     }
 
-    private List<Path> fetchPhotoGallery(ValidatedTikTokUrl url, Path temporaryDirectory) {
+    private DownloadTarget resolveDownloadTarget(ValidatedTikTokUrl url) {
+        ValidatedTikTokUrl resolvedUrl = urlResolver.resolveForDownload(url);
+
+        return new DownloadTarget(ytDlpUrl(resolvedUrl), resolvedUrl.mediaKind());
+    }
+
+    private List<Path> fetchPhotoGallery(DownloadTarget target, Path temporaryDirectory) {
         List<String> imageUrls = extractPhotoImageUrls(temporaryDirectory);
 
         if (imageUrls.isEmpty()) {
-            imageUrls = extractPhotoImageUrls(url);
+            imageUrls = extractPhotoImageUrls(target);
         }
 
         if (imageUrls.isEmpty()) {
@@ -289,10 +299,10 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
 
         for (int index = 0; index < imageUrls.size(); index++) {
             String imageUrl = imageUrls.get(index);
-            Path target = temporaryDirectory.resolve("gallery-%02d.%s".formatted(index + 1, extensionFromUrl(imageUrl)));
+            Path imageTarget = temporaryDirectory.resolve("gallery-%02d.%s".formatted(index + 1, extensionFromUrl(imageUrl)));
 
-            downloadImage(imageUrl, target);
-            files.add(target);
+            downloadImage(imageUrl, imageTarget);
+            files.add(imageTarget);
         }
 
         return files;
@@ -322,9 +332,9 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
         }
     }
 
-    private List<String> extractPhotoImageUrls(ValidatedTikTokUrl url) {
+    private List<String> extractPhotoImageUrls(DownloadTarget target) {
         try {
-            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(URI.create(ytDlpUrl(url)))
+            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(URI.create(target.ytDlpUrl()))
                 .timeout(Duration.ofSeconds(properties.ytDlp().timeoutSeconds()))
                 .GET();
 
@@ -538,6 +548,9 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
 
     private record Metadata(String title, String author, String authorUrl, String id, Long durationSeconds,
                             Long likeCount, Long commentCount) {
+    }
+
+    private record DownloadTarget(String ytDlpUrl, MediaKind mediaKind) {
     }
 
     private record ProcessResult(int exitCode, String stdout, String stderr) {
