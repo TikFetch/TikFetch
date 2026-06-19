@@ -17,7 +17,7 @@ plugins {
 }
 
 group = 'dev.despical'
-version = '1.0.2'
+version = '1.0.3'
 description = 'A clean TikTok media downloader for videos, photo posts, and galleries'
 
 def npmCommand = System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows') ? 'npm.cmd' : 'npm'
