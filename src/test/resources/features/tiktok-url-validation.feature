@@ -11,6 +11,11 @@ Feature: TikTok URL validation
     Then the normalized URL should be "https://www.tiktok.com/@creator/photo/7644218109468970261"
     And the media kind should be "PHOTO"
 
+  Scenario: Normalize a TikTok photo URL with tracking parameters
+    When the user validates the TikTok URL "https://www.tiktok.com/@dertamoyl/photo/7650483855962410261?_r=1&_t=ZS-97K9WpMPKKq"
+    Then the normalized URL should be "https://www.tiktok.com/@dertamoyl/photo/7650483855962410261"
+    And the media kind should be "PHOTO"
+
   Scenario: Accept a short TikTok URL
     When the user validates the TikTok URL "https://vm.tiktok.com/abc123"
     Then the normalized URL should be "https://vm.tiktok.com/abc123"

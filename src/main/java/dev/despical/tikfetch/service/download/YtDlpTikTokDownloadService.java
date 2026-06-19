@@ -265,11 +265,13 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
     }
 
     private String ytDlpUrl(ValidatedTikTokUrl url) {
+        String normalizedUrl = url.normalizedUrl();
+
         if (url.mediaKind() == MediaKind.PHOTO) {
-            return url.originalUrl().replaceFirst("/photo/", "/video/");
+            return normalizedUrl.replaceFirst("/photo/", "/video/");
         }
 
-        return url.originalUrl();
+        return normalizedUrl;
     }
 
     private List<Path> fetchPhotoGallery(ValidatedTikTokUrl url, Path temporaryDirectory) {
