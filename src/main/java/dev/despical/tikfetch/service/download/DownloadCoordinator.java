@@ -53,12 +53,15 @@ public class DownloadCoordinator {
     private final DownloadAttemptService attemptService;
     private final DownloadedVideoRetentionService retentionService;
     private final VideoDurationService videoDurationService;
+    private final TikTokUrlResolver urlResolver;
 
     @Transactional(noRollbackFor = UserFacingException.class)
     public DownloadedVideo download(String rawUrl, String clientIp) {
         ValidatedTikTokUrl validatedUrl = validate(rawUrl, clientIp);
-        return videoRepository.findFirstByNormalizedUrlAndStatusOrderByDownloadedAtDesc(validatedUrl.normalizedUrl(), DownloadStatus.SUCCESS)
-            .orElseGet(() -> performDownload(validatedUrl, clientIp));
+        ValidatedTikTokUrl downloadUrl = urlResolver.resolveForDownload(validatedUrl);
+
+        return videoRepository.findFirstByNormalizedUrlAndStatusOrderByDownloadedAtDesc(downloadUrl.normalizedUrl(), DownloadStatus.SUCCESS)
+            .orElseGet(() -> performDownload(downloadUrl, clientIp));
     }
 
     private ValidatedTikTokUrl validate(String rawUrl, String clientIp) {
