@@ -29,6 +29,7 @@ downloadForms.forEach((downloadForm) => {
             progress.classList.remove('is-active');
             progress.setAttribute('aria-hidden', 'true');
         }
+
         if (error) {
             error.hidden = true;
             error.textContent = '';
@@ -50,9 +51,11 @@ downloadForms.forEach((downloadForm) => {
             button.disabled = true;
             button.textContent = 'Preparing download';
         }
+
         if (progressLabel) {
             progressLabel.textContent = rawUrl.includes('/photo/') ? 'Downloading photo' : 'Downloading video';
         }
+
         if (progress) {
             progress.classList.add('is-active');
             progress.setAttribute('aria-hidden', 'false');
@@ -92,6 +95,7 @@ const showButton = (button) => {
 
     button.closest('[data-clipboard-input]')?.classList.add('has-input-action');
     button.hidden = false;
+
     requestAnimationFrame(() => button.classList.add('is-visible'));
 };
 
@@ -113,6 +117,7 @@ const hideButton = (button, afterHide) => {
         if (!hasVisibleAction) {
             wrap?.classList.remove('has-input-action');
         }
+
         afterHide?.();
     }, 180);
 };
@@ -125,6 +130,7 @@ inputWraps.forEach((wrap) => {
 
     const clearError = () => {
         if (!error) return;
+
         error.hidden = true;
         error.textContent = '';
     };
@@ -160,14 +166,18 @@ inputWraps.forEach((wrap) => {
 
     clearButton?.addEventListener('click', () => {
         if (!input) return;
+
         clearError();
+
         input.value = '';
         input.focus();
+
         syncButtons();
     });
 
     input?.addEventListener('input', syncButtons);
     input?.addEventListener('paste', () => window.setTimeout(syncButtons, 0));
+
     syncButtons();
 });
 
@@ -190,6 +200,7 @@ adminNavScrolls.forEach((nav) => {
     nav.addEventListener('scroll', () => {
         nav.classList.add('is-scrolling');
         window.clearTimeout(scrollTimeout);
+
         scrollTimeout = window.setTimeout(() => {
             nav.classList.remove('is-scrolling');
         }, 700);
@@ -210,6 +221,7 @@ galleryViewers.forEach((viewer) => {
             size: item.dataset.size,
         }))
         .filter((item) => item.url && item.download);
+
     let index = 0;
     let renderToken = 0;
     const preloadedImages = new Map();
@@ -222,6 +234,7 @@ galleryViewers.forEach((viewer) => {
         const preloadImage = new Image();
         preloadImage.decoding = 'async';
         preloadImage.src = item.url;
+
         preloadedImages.set(item.url, preloadImage);
         return preloadImage;
     };
@@ -235,6 +248,7 @@ galleryViewers.forEach((viewer) => {
 
     const apply = (item) => {
         image.src = item.url;
+
         if (download) {
             download.href = item.download;
         }
@@ -254,6 +268,7 @@ galleryViewers.forEach((viewer) => {
         const token = ++renderToken;
         const item = items[index];
         const preloadImage = preload(item);
+
         preloadAround();
 
         const applyIfCurrent = () => {
@@ -416,9 +431,11 @@ const passkeyErrorMessage = (error, fallback) => {
 const showPasskeyMessage = (selector, message, success = false) => {
     const element = document.querySelector(selector);
     if (!element) return;
+
     element.textContent = message;
     element.classList.remove('hidden', 'text-red-600', 'text-emerald-700', 'bg-red-50', 'bg-emerald-50');
     element.classList.add(success ? 'text-emerald-700' : 'text-red-600');
+
     if (selector.includes('register')) {
         element.classList.add(success ? 'bg-emerald-50' : 'bg-red-50');
     }
