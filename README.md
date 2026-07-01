@@ -1,8 +1,9 @@
 # TikFetch
 
 [![](https://github.com/TikFetch/TikFetch/actions/workflows/build.yaml/badge.svg)](https://github.com/TikFetch/TikFetch/actions/workflows/build.yaml)
-[![](https://img.shields.io/badge/License-GPLv3-blue.svg)](../LICENSE)
+[![](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Java 25](https://img.shields.io/badge/Java-25-007396.svg)](https://www.java.com/)
+![Gradle](https://img.shields.io/badge/Gradle-9.6.1-079ec0?logo=gradle&logoColor=white)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.0-6DB33F.svg)](https://spring.io/projects/spring-boot)
 
 TikFetch is an ultra-clean, lightning-fast web application designed to save public TikTok videos, photo posts, swipeable photo galleries, and MP3 audio without watermark clutter, annoying popups, or ad-heavy distractions.
@@ -124,7 +125,7 @@ YT_DLP_PROXY=http://user:password@host:port
 
 We prioritize user privacy and application integrity. Please do not open public issues for discovered vulnerabilities.
 
-Read our [SECURITY.md](../SECURITY.md) for responsible disclosure reporting.
+Read our [SECURITY.md](SECURITY.md) for responsible disclosure reporting.
 
 ---
 
@@ -137,7 +138,7 @@ We welcome Pull Requests from the community. To help us maintain clean project h
 * **Version control cleanliness:** Do not increment project version numbers in example configurations within your PR.
 * **Minimal diffs:** Disable automated reformat-on-save settings that affect untouched files.
 
-Learn more via our formal [Contribution Guidelines](../CONTRIBUTING.md).
+Learn more via our formal [Contribution Guidelines](CONTRIBUTING.md).
 
 ---
 
@@ -145,4 +146,4 @@ Learn more via our formal [Contribution Guidelines](../CONTRIBUTING.md).
 
 This project is licensed under the [GPL-3.0 License](http://www.gnu.org/licenses/gpl-3.0.html).
 
-See the [LICENSE](../LICENSE) file for comprehensive copyright notices and third-party attributions.
+See the [LICENSE](LICENSE) file for comprehensive copyright notices and third-party attributions.
