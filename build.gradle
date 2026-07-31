@@ -89,39 +89,6 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
-    dependsOn 'syncTestRuntime'
-
-    testClassesDirs = files(testRuntimeRoot.map { new File(it, 'test-classes') })
-    classpath = files(
-        testRuntimeRoot.map { new File(it, 'test-classes') },
-        testRuntimeRoot.map { new File(it, 'test-resources') },
-        testRuntimeRoot.map { new File(it, 'main-classes') },
-        testRuntimeRoot.map { new File(it, 'main-resources') }
-    ) + configurations.testRuntimeClasspath
-
-    include '**/CucumberTest.class'
-}
-
-tasks.register('syncTestRuntime', Sync) {
-    dependsOn 'testClasses'
-
-    into testRuntimeRoot
-
-    into('test-classes') {
-        from sourceSets.test.output.classesDirs
-    }
-
-    into('test-resources') {
-        from sourceSets.test.output.resourcesDir
-    }
-
-    into('main-classes') {
-        from sourceSets.main.output.classesDirs
-    }
-
-    into('main-resources') {
-        from sourceSets.main.output.resourcesDir
-    }
 }
 
 tasks.register('npmInstall', Exec) {
