@@ -28,8 +28,12 @@ Feature: TikTok URL validation
 
   Scenario: Reject a non-TikTok URL
     When the user validates the TikTok URL "https://example.com/video/123"
-    Then the URL should be rejected with a message containing "Only TikTok"
+    Then the URL should be rejected with a message "Only TikTok video or photo links are supported."
 
   Scenario: Reject malformed input
     When the user validates the TikTok URL "not a url"
-    Then the URL should be rejected with a message containing "valid TikTok URL"
+    Then the URL should be rejected with a message "Use a valid TikTok URL."
+
+  Scenario: Reject a URL without http or https scheme
+    When the user validates the TikTok URL "www.tiktok.com/@dertamoyl/photo/7650483855962410261"
+    Then the URL should be rejected with a message "Use a valid TikTok http or https URL."

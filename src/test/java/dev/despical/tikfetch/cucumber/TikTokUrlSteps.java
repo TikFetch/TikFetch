@@ -41,7 +41,6 @@ public class TikTokUrlSteps {
     public void theUserValidatesTheTikTokUrl(String url) {
         try {
             validatedUrl = validator.validateAndNormalize(url);
-            thrownException = null;
         } catch (Exception exception) {
             validatedUrl = null;
             thrownException = exception;
@@ -63,9 +62,9 @@ public class TikTokUrlSteps {
         assertThat(validatedUrl.mediaKind()).isEqualTo(ValidatedTikTokUrl.MediaKind.valueOf(expectedKind));
     }
 
-    @Then("the URL should be rejected with a message containing {string}")
+    @Then("the URL should be rejected with a message {string}")
     public void theUrlShouldBeRejectedWithAMessageContaining(String expectedText) {
         assertThat(thrownException).isInstanceOf(IllegalArgumentException.class);
-        assertThat(thrownException).hasMessageContaining(expectedText);
+        assertThat(thrownException).hasMessage(expectedText);
     }
 }
