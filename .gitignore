@@ -48,3 +48,5 @@ desktop.ini
 # Generated database/helper files
 hs_err_pid*
 replay_pid*
+
+flyway.conf

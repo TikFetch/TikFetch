@@ -123,27 +123,5 @@ springBoot {
 }
 
 flyway {
-    def flywayUrl = providers.gradleProperty('flywayUrl').orElse(providers.environmentVariable('FLYWAY_URL')).orNull
-    def flywayUser = providers.gradleProperty('flywayUser').orElse(providers.environmentVariable('FLYWAY_USER')).orNull
-    def flywayPassword = providers.gradleProperty('flywayPassword').orElse(providers.environmentVariable('FLYWAY_PASSWORD')).orNull
-    def flywayCleanDisabled = providers.gradleProperty('flywayCleanDisabled')
-        .orElse(providers.gradleProperty('flyway.cleanDisabled'))
-        .orElse(providers.environmentVariable('FLYWAY_CLEAN_DISABLED'))
-        .orNull
-
-    if (flywayUrl != null) {
-        url = flywayUrl
-    }
-
-    if (flywayUser != null) {
-        user = flywayUser
-    }
-
-    if (flywayPassword != null) {
-        password = flywayPassword
-    }
-
-    if (flywayCleanDisabled != null) {
-        cleanDisabled = flywayCleanDisabled.toBoolean()
-    }
+    configFiles = ['flyway.conf']
 }

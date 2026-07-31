@@ -1,0 +1,3 @@
+flyway.user=
+flyway.password=
+flyway.url=jdbc:mysql://localhost:3306/<database>?useSSL=false&autoReConnect=true&createDatabaseIfNotExist=true
