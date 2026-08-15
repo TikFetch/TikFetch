@@ -35,5 +35,5 @@ public interface DownloadAttemptRepository extends JpaRepository<DownloadAttempt
 
     List<DownloadAttempt> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
-    long deleteByCreatedAtBefore(Instant cutoff);
+    void deleteByCreatedAtBefore(Instant cutoff);
 }

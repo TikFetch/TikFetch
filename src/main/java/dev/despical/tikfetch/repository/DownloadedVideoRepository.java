@@ -43,7 +43,7 @@ public interface DownloadedVideoRepository extends JpaRepository<DownloadedVideo
 
     @Query("""
         SELECT video FROM DownloadedVideo video
-        WHERE video.status = dev.despical.tikfetch.entity.DownloadStatus.SUCCESS
+        WHERE video.status = DownloadStatus.SUCCESS
         ORDER BY video.downloadedAt DESC, video.id DESC
         """)
     List<DownloadedVideo> findSuccessfulForRetention(Pageable pageable);
