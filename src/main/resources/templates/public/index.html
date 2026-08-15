@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: page('Free TikTok Video, Photo and MP3 Downloader', ~{::content})}">
+      th:replace="~{fragments/layout :: page('TikTok Video, Photo and MP3 Downloader', ~{::content})}">
 <main th:fragment="content" class="with-site-header">
     <div th:replace="~{fragments/header :: header}"></div>
     <section class="hero-surface">
@@ -67,64 +67,6 @@
                     <p class="feature-title">MP4, JPEG, and MP3</p>
                     <p class="feature-copy">Fetch MP4 videos, JPEG photo galleries, and MP3 audio from video posts.</p>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="border-y border-slate-200 bg-white" aria-labelledby="how-to-download">
-        <div class="mx-auto max-w-6xl px-6 py-16">
-            <div class="max-w-3xl">
-                <p class="text-sm font-semibold uppercase tracking-wider text-slate-500">Simple and fast</p>
-                <h2 id="how-to-download" class="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
-                    How to download TikTok videos without watermark
-                </h2>
-                <p class="mt-4 text-base leading-7 text-slate-600">
-                    TikFetch works in your browser and does not require an account or app installation. Only public
-                    TikTok posts can be fetched.
-                </p>
-            </div>
-            <ol class="mt-10 grid gap-6 md:grid-cols-3">
-                <li class="rounded-lg border border-slate-200 bg-slate-50 p-6">
-                    <p class="text-sm font-semibold text-slate-500">Step 1</p>
-                    <h3 class="mt-2 text-lg font-semibold text-slate-950">Copy the TikTok link</h3>
-                    <p class="mt-2 leading-7 text-slate-600">Open a public video or photo post in TikTok and copy its share link.</p>
-                </li>
-                <li class="rounded-lg border border-slate-200 bg-slate-50 p-6">
-                    <p class="text-sm font-semibold text-slate-500">Step 2</p>
-                    <h3 class="mt-2 text-lg font-semibold text-slate-950">Paste it into TikFetch</h3>
-                    <p class="mt-2 leading-7 text-slate-600">Paste the URL into the field above and select Download.</p>
-                </li>
-                <li class="rounded-lg border border-slate-200 bg-slate-50 p-6">
-                    <p class="text-sm font-semibold text-slate-500">Step 3</p>
-                    <h3 class="mt-2 text-lg font-semibold text-slate-950">Save your preferred format</h3>
-                    <p class="mt-2 leading-7 text-slate-600">Download an MP4 video, JPEG photo gallery, or MP3 audio file.</p>
-                </li>
-            </ol>
-        </div>
-    </section>
-
-    <section class="bg-slate-50" aria-labelledby="tiktok-downloader-faq">
-        <div class="mx-auto max-w-4xl px-6 py-16">
-            <h2 id="tiktok-downloader-faq" class="text-3xl font-semibold tracking-tight text-slate-950">
-                TikTok downloader FAQ
-            </h2>
-            <div class="mt-8 divide-y divide-slate-200 border-y border-slate-200">
-                <details class="group py-5">
-                    <summary class="cursor-pointer list-none font-semibold text-slate-950">Can TikFetch download TikTok videos without a watermark?</summary>
-                    <p class="mt-3 leading-7 text-slate-600">Yes. For supported public posts, TikFetch provides an MP4 download without the TikTok watermark.</p>
-                </details>
-                <details class="group py-5">
-                    <summary class="cursor-pointer list-none font-semibold text-slate-950">Can I download TikTok photo slideshows?</summary>
-                    <p class="mt-3 leading-7 text-slate-600">Yes. Public photo posts can be saved as individual JPEG images or downloaded together.</p>
-                </details>
-                <details class="group py-5">
-                    <summary class="cursor-pointer list-none font-semibold text-slate-950">Can I save only the audio from a TikTok video?</summary>
-                    <p class="mt-3 leading-7 text-slate-600">Yes. When audio is available, TikFetch offers an MP3 download alongside the video.</p>
-                </details>
-                <details class="group py-5">
-                    <summary class="cursor-pointer list-none font-semibold text-slate-950">Do I need to install an app or sign in?</summary>
-                    <p class="mt-3 leading-7 text-slate-600">No. TikFetch runs in the browser and does not require a TikFetch account.</p>
-                </details>
             </div>
         </div>
     </section>
