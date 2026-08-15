@@ -36,7 +36,7 @@ management:
 
 app:
   name: ${APP_NAME:TikFetch}
-  base-url: ${APP_BASE_URL:https://www.tikfetch.despical.dev}
+  base-url: ${APP_BASE_URL:https://tikfetch.despical.dev}
   latest-videos-limit: ${APP_LATEST_VIDEOS_LIMIT:10}
 
   storage:
