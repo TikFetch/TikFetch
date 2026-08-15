@@ -19,6 +19,7 @@
 package dev.despical.tikfetch.controller;
 
 import dev.despical.tikfetch.config.AppProperties;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -37,5 +38,22 @@ public class GlobalModelAdvice {
     @ModelAttribute("app")
     public AppProperties appProperties() {
         return properties;
+    }
+
+    @ModelAttribute("seoHomePage")
+    public boolean seoHomePage(HttpServletRequest request) {
+        return "/".equals(request.getRequestURI());
+    }
+
+    @ModelAttribute("robotsContent")
+    public String robotsContent(HttpServletRequest request) {
+        return seoHomePage(request)
+            ? "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"
+            : "noindex,nofollow";
+    }
+
+    @ModelAttribute("canonicalUrl")
+    public String canonicalUrl() {
+        return properties.baseUrl().replaceAll("/+$", "") + "/";
     }
 }
