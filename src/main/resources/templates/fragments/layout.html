@@ -1,21 +1,42 @@
 <!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="page(title, content)">
 <head
-    th:with="appName=${app != null ? app.name : 'TikFetch'}, pageTitle=${title != null && !title.isBlank() ? title : appName}, appUrl=${app != null ? app.baseUrl : 'https://www.tikfetch.despical.dev'}, description='Download TikTok videos, photo posts, galleries, and MP3 audio without watermark or ads. Paste a public TikTok link and save media with TikFetch.'">
+    th:with="appName=${app != null ? app.name : 'TikFetch'}, pageTitle=${title != null && !title.isBlank() ? title : appName}, description='Download TikTok videos, photo posts, galleries, and MP3 audio without watermark or ads. Paste a public TikTok link and save media with TikFetch.'">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="${pageTitle == appName ? appName : pageTitle + ' | ' + appName}">TikFetch</title>
     <meta name="description" th:content="${description}">
-    <meta name="robots" content="index,follow">
-    <link rel="canonical" th:href="${appUrl}">
+    <meta name="robots" th:content="${robotsContent}">
+    <link th:if="${seoHomePage}" rel="canonical" th:href="${canonicalUrl}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" th:content="${appName}">
     <meta property="og:title" th:content="${pageTitle == appName ? appName : pageTitle + ' | ' + appName}">
     <meta property="og:description" th:content="${description}">
-    <meta property="og:url" th:content="${appUrl}">
+    <meta th:if="${seoHomePage}" property="og:url" th:content="${canonicalUrl}">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" th:content="${pageTitle == appName ? appName : pageTitle + ' | ' + appName}">
     <meta name="twitter:description" th:content="${description}">
+    <script th:if="${seoHomePage}" type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "WebApplication",
+            "name": "TikFetch",
+            "url": "https://tikfetch.despical.dev/",
+            "description": "Download TikTok videos, photo posts, galleries, and MP3 audio without watermark or ads.",
+            "applicationCategory": "MultimediaApplication",
+            "operatingSystem": "Any",
+            "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+            },
+            "featureList": [
+                "TikTok video downloads without watermark",
+                "TikTok photo gallery downloads",
+                "MP3 audio downloads"
+            ]
+        }
+    </script>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/dist/assets/app.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-HNMKGXGGXD"></script>
