@@ -104,6 +104,10 @@ html {
     scroll-margin-top: 88px;
 }
 
+.faq-item summary::-webkit-details-marker {
+    display: none;
+}
+
 .video-title-link {
     color: #2563eb;
 }
