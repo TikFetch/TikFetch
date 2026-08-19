@@ -27,10 +27,10 @@
                           class="block truncate text-slate-500">Not available</span>
                 </td>
                 <td class="min-w-0 border-r border-slate-200 px-4 py-3 text-slate-600">
-                    <p class="truncate" th:title="${attempt.message}" th:text="${attempt.message}">Message</p>
+                    <p class="admin-cell-scroll" th:title="${attempt.message}" th:text="${attempt.message}">Message</p>
                 </td>
-                <td class="truncate border-r border-slate-200 px-4 py-3 text-slate-600" th:title="${attempt.clientIp}"
-                    th:text="${attempt.clientIp}">IP
+                <td class="min-w-0 border-r border-slate-200 px-4 py-3 text-slate-600">
+                    <p class="admin-cell-scroll" th:title="${attempt.clientIp}" th:text="${attempt.clientIp}">IP</p>
                 </td>
                 <td class="whitespace-nowrap px-4 py-3 text-slate-600" th:text="${attempt.createdAt}">Time</td>
             </tr>

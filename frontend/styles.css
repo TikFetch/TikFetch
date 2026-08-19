@@ -267,6 +267,24 @@ html {
     background: #cbd5e1;
 }
 
+.admin-cell-scroll {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 3px;
+    white-space: nowrap;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.admin-cell-scroll::-webkit-scrollbar {
+    height: 5px;
+}
+
+.admin-cell-scroll::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #cbd5e1;
+}
+
 .admin-action-button {
     display: inline-flex;
     width: 76px;
