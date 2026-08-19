@@ -26,6 +26,7 @@ import dev.despical.tikfetch.storage.LocalFileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.MediaTypeFactory;
@@ -40,6 +41,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -52,6 +54,10 @@ import java.util.zip.ZipOutputStream;
 @RequestMapping("/media")
 @RequiredArgsConstructor
 public class MediaController {
+
+    private static final CacheControl PUBLIC_MEDIA_CACHE = CacheControl.maxAge(Duration.ofDays(7))
+        .cachePublic()
+        .immutable();
 
     private final DownloadedVideoRepository videoRepository;
     private final DownloadedMediaItemRepository mediaItemRepository;
@@ -102,6 +108,7 @@ public class MediaController {
             Resource resource = storageService.loadAsResource(item.getMediaPath());
 
             return ResponseEntity.ok()
+                .cacheControl(PUBLIC_MEDIA_CACHE)
                 .contentType(MediaType.parseMediaType(item.getMimeType() == null ? "image/jpeg" : item.getMimeType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline()
                     .filename("tikfetch.despical.dev-photo-%s-%s.%s".formatted(id, position + 1, extensionOf(item.getMediaPath())))
@@ -112,6 +119,7 @@ public class MediaController {
 
         Resource resource = storageService.loadAsResource(video.getVideoPath());
         return ResponseEntity.ok()
+            .cacheControl(PUBLIC_MEDIA_CACHE)
             .contentType(MediaType.parseMediaType(video.getMimeType() == null ? "video/mp4" : video.getMimeType()))
             .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline()
                 .filename(downloadFileName(video.getId()))
@@ -129,7 +137,10 @@ public class MediaController {
 
         Resource resource = storageService.loadAsResource(video.getThumbnailPath());
         MediaType mediaType = MediaTypeFactory.getMediaType(resource).orElse(MediaType.IMAGE_JPEG);
-        return ResponseEntity.ok().contentType(mediaType).body(resource);
+        return ResponseEntity.ok()
+            .cacheControl(PUBLIC_MEDIA_CACHE)
+            .contentType(mediaType)
+            .body(resource);
     }
 
     @GetMapping("/gallery/{id}/{position}")
