@@ -31,8 +31,9 @@ WORKDIR /app
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl ffmpeg python3 \
-    && curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
+    && curl -fL https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
     && chmod +x /usr/local/bin/yt-dlp \
+    && /usr/local/bin/yt-dlp --version \
     && useradd --system --create-home --home-dir /app --shell /usr/sbin/nologin tikfetch \
     && mkdir -p /var/lib/tikfetch/storage \
     && chown -R tikfetch:tikfetch /app /var/lib/tikfetch \
