@@ -454,6 +454,7 @@ passkeyLoginButton?.addEventListener('click', async () => {
     try {
         const options = await postJson(passkeyLoginButton.dataset.optionsUrl, passkeyLoginButton.dataset.csrfToken);
         const publicKey = parseRequestOptions(options);
+        publicKey.hints = ['client-device', 'hybrid'];
         const credential = await navigator.credentials.get({publicKey});
         const result = await postJson(passkeyLoginButton.dataset.finishUrl, passkeyLoginButton.dataset.csrfToken, {
             credential: credentialToJson(credential),
