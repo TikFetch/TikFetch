@@ -5,7 +5,7 @@
       th:with="appName=${app != null ? app.name : 'TikFetch'}">
     <div class="max-w-md text-center">
         <a href="/" class="mb-6 inline-flex items-center gap-2 font-semibold text-slate-950">
-            <img src="/favicon.svg" alt="" class="h-8 w-8 rounded">
+            <svg th:replace="~{fragments/brand-icon :: icon('h-8 w-8 rounded')}"></svg>
             <span th:text="${appName}">TikFetch</span>
         </a>
         <h1 class="text-3xl font-semibold text-slate-950" th:text="${title ?: 'Error'}">Error</h1>

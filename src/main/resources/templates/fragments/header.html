@@ -1,7 +1,7 @@
 <header xmlns:th="http://www.thymeleaf.org" th:fragment="header" class="site-header">
     <div class="site-header-inner">
         <a href="/" class="site-header-brand">
-            <img src="/favicon.svg" alt="" class="h-8 w-8 rounded">
+            <svg th:replace="~{fragments/brand-icon :: icon('h-8 w-8 rounded')}"></svg>
             <span th:text="${app.name}">TikFetch</span>
         </a>
         <nav class="site-header-nav" aria-label="Primary">
