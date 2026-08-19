@@ -66,6 +66,7 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
     private static final Set<String> VIDEO_EXTENSIONS = Set.of("mp4", "webm", "mov", "mkv");
     private static final Set<String> IMAGE_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp", "image");
     private static final Set<String> AUDIO_EXTENSIONS = Set.of("mp3");
+    private static final int MAX_MEDIA_DOWNLOAD_ATTEMPTS = 2;
 
     private static final Pattern IMAGE_POST_PATTERN = Pattern.compile("\"imagePost\"\\s*:\\s*\\{\"images\"\\s*:\\s*\\[(.*?)]\\s*,\\s*\"cover\"", Pattern.DOTALL);
     private static final Pattern IMAGE_ENTRY_PATTERN = Pattern.compile("\\{\"imageURL\"\\s*:\\s*\\{\"urlList\"\\s*:\\s*\\[(.*?)]", Pattern.DOTALL);
@@ -168,7 +169,35 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
     }
 
     private void runDownload(DownloadTarget target, Path temporaryDirectory) {
-        String outputTemplate = temporaryDirectory.resolve(target.mediaKind() == MediaKind.PHOTO ? "media.%(playlist_index)s.%(ext)s" : "video.%(ext)s").toString();
+        for (int attempt = 1; attempt <= MAX_MEDIA_DOWNLOAD_ATTEMPTS; attempt++) {
+            Path attemptDirectory = temporaryDirectory.resolve("download-" + attempt);
+
+            try {
+                Files.createDirectories(attemptDirectory);
+            } catch (IOException exception) {
+                throw new UserFacingException("Could not prepare the download directory.", exception);
+            }
+
+            ProcessResult result = runDownloadAttempt(target, attemptDirectory);
+
+            if (result.exitCode() == 0) {
+                return;
+            }
+
+            storageService.deleteDirectoryQuietly(attemptDirectory);
+            String error = cleanYtDlpError(result.stderr());
+
+            if (attempt < MAX_MEDIA_DOWNLOAD_ATTEMPTS && isRetryableMediaDeliveryError(result.stderr())) {
+                LOGGER.warn("TikTok returned a temporary media delivery error; resolving the media URL again");
+                continue;
+            }
+
+            throw new UserFacingException(error);
+        }
+    }
+
+    private ProcessResult runDownloadAttempt(DownloadTarget target, Path attemptDirectory) {
+        String outputTemplate = attemptDirectory.resolve(target.mediaKind() == MediaKind.PHOTO ? "media.%(playlist_index)s.%(ext)s" : "video.%(ext)s").toString();
         List<String> command = new ArrayList<>();
         command.add(properties.ytDlp().path());
 
@@ -194,11 +223,18 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
         command.add(outputTemplate);
         command.add(target.ytDlpUrl());
 
-        ProcessResult result = run(command, temporaryDirectory, Duration.ofSeconds(properties.ytDlp().timeoutSeconds()));
+        return run(command, attemptDirectory, Duration.ofSeconds(properties.ytDlp().timeoutSeconds()));
+    }
 
-        if (result.exitCode() != 0) {
-            throw new UserFacingException(cleanYtDlpError(result.stderr()));
+    private boolean isRetryableMediaDeliveryError(String stderr) {
+        if (stderr == null) {
+            return false;
         }
+
+        String error = stderr.toLowerCase(Locale.ROOT);
+        return error.contains("http error 404")
+            || error.contains("did not get any data blocks")
+            || error.contains("unable to download video data");
     }
 
     private Optional<Path> downloadAudio(DownloadTarget target, Path temporaryDirectory) {
