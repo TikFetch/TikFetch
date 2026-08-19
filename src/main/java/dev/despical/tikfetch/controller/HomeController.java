@@ -18,9 +18,7 @@
 
 package dev.despical.tikfetch.controller;
 
-import dev.despical.tikfetch.config.AppProperties;
 import dev.despical.tikfetch.dto.GalleryImageView;
-import dev.despical.tikfetch.dto.LatestVideoView;
 import dev.despical.tikfetch.entity.DownloadStatus;
 import dev.despical.tikfetch.entity.DownloadedVideo;
 import dev.despical.tikfetch.exception.UserFacingException;
@@ -28,6 +26,7 @@ import dev.despical.tikfetch.form.DownloadForm;
 import dev.despical.tikfetch.repository.DownloadedVideoRepository;
 import dev.despical.tikfetch.repository.DownloadedMediaItemRepository;
 import dev.despical.tikfetch.service.download.DownloadCoordinator;
+import dev.despical.tikfetch.service.LatestVideoCacheService;
 import dev.despical.tikfetch.service.RateLimiterService;
 import dev.despical.tikfetch.service.download.VideoDurationService;
 import dev.despical.tikfetch.mapper.VideoViewMapper;
@@ -38,7 +37,6 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -57,7 +55,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequiredArgsConstructor
 public class HomeController {
 
-    private final AppProperties properties;
     private final DownloadedVideoRepository videoRepository;
     private final DownloadedMediaItemRepository mediaItemRepository;
     private final VideoViewMapper viewMapper;
@@ -65,6 +62,7 @@ public class HomeController {
     private final RateLimiterService rateLimiterService;
     private final LocalFileStorageService storageService;
     private final VideoDurationService videoDurationService;
+    private final LatestVideoCacheService latestVideoCacheService;
 
     @GetMapping("/")
     public String index(Model model) {
@@ -72,7 +70,7 @@ public class HomeController {
             model.addAttribute("downloadForm", new DownloadForm(""));
         }
 
-        model.addAttribute("latestVideos", latestVideos());
+        model.addAttribute("latestVideos", latestVideoCacheService.current());
         return "public/index";
     }
 
@@ -119,19 +117,8 @@ public class HomeController {
 
         model.addAttribute("video", viewMapper.toLatestView(ensureDuration(video)));
         model.addAttribute("galleryImages", galleryImages(video));
-        model.addAttribute("latestVideos", latestVideos());
+        model.addAttribute("latestVideos", latestVideoCacheService.current());
         return "public/download-result";
-    }
-
-    private List<LatestVideoView> latestVideos() {
-        return videoRepository.findByStatusOrderByDownloadedAtDesc(
-                DownloadStatus.SUCCESS,
-                PageRequest.of(0, properties.latestVideosLimit())
-            )
-            .stream()
-            .map(this::ensureDuration)
-            .map(viewMapper::toLatestView)
-            .toList();
     }
 
     private List<GalleryImageView> galleryImages(DownloadedVideo video) {

@@ -26,6 +26,7 @@ import dev.despical.tikfetch.exception.UserFacingException;
 import dev.despical.tikfetch.repository.DownloadedVideoRepository;
 import dev.despical.tikfetch.storage.LocalFileStorageService;
 import dev.despical.tikfetch.storage.StoredFile;
+import dev.despical.tikfetch.service.LatestVideoCacheService;
 import dev.despical.tikfetch.validation.TikTokUrlValidator;
 import dev.despical.tikfetch.validation.ValidatedTikTokUrl;
 
@@ -54,6 +55,7 @@ public class DownloadCoordinator {
     private final DownloadedVideoRetentionService retentionService;
     private final VideoDurationService videoDurationService;
     private final TikTokUrlResolver urlResolver;
+    private final LatestVideoCacheService latestVideoCacheService;
 
     @Transactional(noRollbackFor = UserFacingException.class)
     public DownloadedVideo download(String rawUrl, String clientIp) {
@@ -115,6 +117,7 @@ public class DownloadCoordinator {
 
                 attemptService.record(validatedUrl.originalUrl(), validatedUrl.normalizedUrl(), DownloadStatus.SUCCESS, "Downloaded successfully.", clientIp);
                 retentionService.enforceSuccessfulRetention();
+                latestVideoCacheService.refresh();
                 return video;
             } finally {
                 storageService.deleteDirectoryQuietly(downloaded.temporaryDirectory());

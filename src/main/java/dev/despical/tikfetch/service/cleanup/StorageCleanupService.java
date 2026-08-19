@@ -19,6 +19,7 @@
 package dev.despical.tikfetch.service.cleanup;
 
 import dev.despical.tikfetch.config.AppProperties;
+import dev.despical.tikfetch.service.LatestVideoCacheService;
 
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -39,6 +40,7 @@ public class StorageCleanupService {
 
     private final AppProperties properties;
     private final CleanupTransactionService cleanupTransactionService;
+    private final LatestVideoCacheService latestVideoCacheService;
 
     @Scheduled(
         initialDelayString = "${app.cleanup.interval-ms:3600000}",
@@ -52,5 +54,6 @@ public class StorageCleanupService {
         LOGGER.debug("Running scheduled TikFetch cleanup.");
 
         cleanupTransactionService.cleanup();
+        latestVideoCacheService.refresh();
     }
 }
