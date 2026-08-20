@@ -51,16 +51,18 @@ public class DownloadedVideoRetentionService {
     private final LocalFileStorageService storageService;
 
     @Transactional
-    public void enforceSuccessfulRetention() {
+    public int enforceSuccessfulRetention() {
         int retained = properties.storage().retainedSuccessfulVideos();
         long count = videoRepository.countByStatus(DownloadStatus.SUCCESS);
 
         if (count <= retained) {
-            return;
+            return 0;
         }
 
         List<DownloadedVideo> ordered = videoRepository.findSuccessfulForRetention(PageRequest.of(0, (int) count));
-        ordered.stream().skip(retained).forEach(this::deleteVideoAndFiles);
+        List<DownloadedVideo> expired = ordered.stream().skip(retained).toList();
+        expired.forEach(this::deleteVideoAndFiles);
+        return expired.size();
     }
 
     @Transactional

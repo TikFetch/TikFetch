@@ -43,10 +43,11 @@ public class CleanupTransactionService {
     private final DownloadAttemptRepository attemptRepository;
 
     @Transactional
-    public void cleanup() {
-        retentionService.enforceSuccessfulRetention();
+    public boolean cleanup() {
+        boolean successfulVideosDeleted = retentionService.enforceSuccessfulRetention() > 0;
 
         Instant cutoff = Instant.now().minus(properties.cleanup().failedAttemptRetentionDays(), ChronoUnit.DAYS);
         attemptRepository.deleteByCreatedAtBefore(cutoff);
+        return successfulVideosDeleted;
     }
 }

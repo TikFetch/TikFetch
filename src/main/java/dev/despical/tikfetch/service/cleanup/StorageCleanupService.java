@@ -53,7 +53,8 @@ public class StorageCleanupService {
 
         LOGGER.debug("Running scheduled TikFetch cleanup.");
 
-        cleanupTransactionService.cleanup();
-        latestVideoCacheService.refresh();
+        if (cleanupTransactionService.cleanup()) {
+            latestVideoCacheService.refresh();
+        }
     }
 }
