@@ -54,7 +54,7 @@ import java.util.zip.ZipOutputStream;
 @RequiredArgsConstructor
 public class MediaController {
 
-    private static final CacheControl NO_STORE = CacheControl.noCache();
+    private static final CacheControl NO_STORE = CacheControl.noStore();
 
     private final DownloadedVideoRepository videoRepository;
     private final DownloadedMediaItemRepository mediaItemRepository;
