@@ -11,7 +11,6 @@
 package dev.despical.tikfetch.service.cleanup;
 
 import dev.despical.tikfetch.config.AppProperties;
-import dev.despical.tikfetch.service.LatestVideoCacheService;
 
 import org.junit.jupiter.api.Test;
 
@@ -23,34 +22,30 @@ import static org.mockito.Mockito.when;
 class StorageCleanupServiceTest {
 
     @Test
-    void leavesLatestVideoCacheAloneWhenCleanupDoesNotDeleteVideos() {
+    void runsCleanupWhenEnabled() {
         AppProperties properties = mock(AppProperties.class);
         AppProperties.Cleanup cleanupProperties = mock(AppProperties.Cleanup.class);
         CleanupTransactionService cleanup = mock(CleanupTransactionService.class);
-        LatestVideoCacheService cache = mock(LatestVideoCacheService.class);
 
         when(properties.cleanup()).thenReturn(cleanupProperties);
         when(cleanupProperties.enabled()).thenReturn(true);
-        when(cleanup.cleanup()).thenReturn(false);
 
-        new StorageCleanupService(properties, cleanup, cache).scheduledCleanup();
+        new StorageCleanupService(properties, cleanup).scheduledCleanup();
 
-        verify(cache, never()).refresh();
+        verify(cleanup).cleanup();
     }
 
     @Test
-    void refreshesLatestVideoCacheWhenCleanupDeletesVideos() {
+    void skipsCleanupWhenDisabled() {
         AppProperties properties = mock(AppProperties.class);
         AppProperties.Cleanup cleanupProperties = mock(AppProperties.Cleanup.class);
         CleanupTransactionService cleanup = mock(CleanupTransactionService.class);
-        LatestVideoCacheService cache = mock(LatestVideoCacheService.class);
 
         when(properties.cleanup()).thenReturn(cleanupProperties);
-        when(cleanupProperties.enabled()).thenReturn(true);
-        when(cleanup.cleanup()).thenReturn(true);
+        when(cleanupProperties.enabled()).thenReturn(false);
 
-        new StorageCleanupService(properties, cleanup, cache).scheduledCleanup();
+        new StorageCleanupService(properties, cleanup).scheduledCleanup();
 
-        verify(cache).refresh();
+        verify(cleanup, never()).cleanup();
     }
 }
