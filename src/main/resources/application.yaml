@@ -34,11 +34,11 @@ management:
 app:
   name: ${APP_NAME:TikFetch}
   base-url: ${APP_BASE_URL:https://tikfetch.despical.dev}
-  latest-videos-limit: ${APP_LATEST_VIDEOS_LIMIT:10}
+  latest-videos-limit: ${APP_LATEST_VIDEOS_LIMIT:9}
 
   storage:
     directory: ${APP_STORAGE_DIR:C:/tikfetch/storage}
-    retained-successful-videos: ${APP_RETAINED_SUCCESSFUL_VIDEOS:10}
+    retained-successful-videos: ${APP_RETAINED_SUCCESSFUL_VIDEOS:9}
 
   cleanup:
     enabled: ${APP_CLEANUP_ENABLED:true}

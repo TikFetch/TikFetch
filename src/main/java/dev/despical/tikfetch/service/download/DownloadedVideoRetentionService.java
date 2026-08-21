@@ -52,7 +52,10 @@ public class DownloadedVideoRetentionService {
 
     @Transactional
     public int enforceSuccessfulRetention() {
-        int retained = properties.storage().retainedSuccessfulVideos();
+        int retained = Math.max(
+            properties.storage().retainedSuccessfulVideos(),
+            properties.latestVideosLimit()
+        );
         long count = videoRepository.countByStatus(DownloadStatus.SUCCESS);
 
         if (count <= retained) {
