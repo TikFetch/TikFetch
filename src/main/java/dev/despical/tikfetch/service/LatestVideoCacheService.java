@@ -29,6 +29,8 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * Keeps the homepage video models ready in memory so public requests never wait
@@ -55,6 +57,11 @@ public class LatestVideoCacheService {
 
     @EventListener(ApplicationReadyEvent.class)
     public void warmOnStartup() {
+        refresh();
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+    public void refreshAfterChange(LatestVideosChangedEvent event) {
         refresh();
     }
 

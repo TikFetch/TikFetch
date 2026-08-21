@@ -33,7 +33,7 @@ import dev.despical.tikfetch.security.AdminPrincipal;
 import dev.despical.tikfetch.security.AuthTokens;
 import dev.despical.tikfetch.security.CookieService;
 import dev.despical.tikfetch.service.download.DownloadedVideoRetentionService;
-import dev.despical.tikfetch.service.LatestVideoCacheService;
+import dev.despical.tikfetch.service.LatestVideosChangedEvent;
 import dev.despical.tikfetch.service.admin.AdminMetricsService;
 import dev.despical.tikfetch.service.RateLimiterService;
 import dev.despical.tikfetch.service.admin.SystemInfoService;
@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -82,7 +83,7 @@ public class AdminController {
     private final DownloadedVideoRepository videoRepository;
     private final DownloadAttemptRepository attemptRepository;
     private final DownloadedVideoRetentionService retentionService;
-    private final LatestVideoCacheService latestVideoCacheService;
+    private final ApplicationEventPublisher eventPublisher;
     private final VideoViewMapper viewMapper;
     private final SystemInfoService systemInfoService;
     private final AdminMetricsService adminMetricsService;
@@ -203,7 +204,7 @@ public class AdminController {
         }
 
         retentionService.deleteVideoAndFiles(video);
-        latestVideoCacheService.refresh();
+        eventPublisher.publishEvent(new LatestVideosChangedEvent());
 
         redirectAttributes.addFlashAttribute("successMessage", "Video record deleted.");
         return "redirect:/admin/videos";
