@@ -97,7 +97,10 @@ public class MediaController {
     }
 
     @GetMapping("/stream/{id}")
-    public ResponseEntity<Resource> stream(@PathVariable Long id, @RequestParam(required = false) Integer position) {
+    public ResponseEntity<Resource> stream(
+        @PathVariable Long id,
+        @RequestParam(required = false) Integer position
+    ) {
         var video = videoRepository.findById(id)
             .filter(item -> item.getStatus() == DownloadStatus.SUCCESS)
             .orElseThrow(() -> new UserFacingException("Video not found."));
