@@ -17,9 +17,6 @@ spring:
     enabled: true
     locations: classpath:db/migration
 
-  thymeleaf:
-    cache: true
-
 server:
   forward-headers-strategy: framework
 
@@ -73,9 +70,6 @@ app:
     extractor-retries: ${YT_DLP_EXTRACTOR_RETRIES:5}
     fragment-retries: ${YT_DLP_FRAGMENT_RETRIES:10}
     retry-sleep: ${YT_DLP_RETRY_SLEEP:exp=1:20}
-
-  cookies:
-    secure: ${COOKIE_SECURE:false}
 
   rate-limit:
     download-capacity: ${APP_RATE_LIMIT_DOWNLOAD_CAPACITY:10}

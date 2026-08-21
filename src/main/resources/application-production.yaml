@@ -22,7 +22,7 @@ app:
     password: ${ADMIN_PASSWORD}
 
   cookies:
-    secure: ${COOKIE_SECURE:true}
+    secure: ${COOKIE_SECURE}
 
 logging:
   level:
