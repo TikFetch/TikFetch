@@ -26,6 +26,8 @@ import org.springframework.data.domain.PageRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class LatestVideoCacheServiceTest {
@@ -53,5 +55,28 @@ class LatestVideoCacheServiceTest {
         cache.refresh();
 
         assertThat(cache.current()).containsExactly(view);
+        verify(repository).findByStatusOrderByDownloadedAtDesc(DownloadStatus.SUCCESS, PageRequest.of(0, 10));
+    }
+
+    @Test
+    void retriesAFailedStartupWarmupOnlyUntilTheBackendCacheLoads() {
+        AppProperties properties = mock(AppProperties.class);
+        DownloadedVideoRepository repository = mock(DownloadedVideoRepository.class);
+        VideoViewMapper mapper = mock(VideoViewMapper.class);
+        LocalFileStorageService storage = mock(LocalFileStorageService.class);
+        VideoDurationService durationService = mock(VideoDurationService.class);
+
+        when(properties.latestVideosLimit()).thenReturn(9);
+        when(repository.findByStatusOrderByDownloadedAtDesc(DownloadStatus.SUCCESS, PageRequest.of(0, 9)))
+            .thenThrow(new IllegalStateException("Database is not ready"))
+            .thenReturn(List.of());
+
+        var cache = new LatestVideoCacheService(properties, repository, mapper, storage, durationService);
+        cache.warmOnStartup();
+
+        assertThat(cache.current()).isEmpty();
+        assertThat(cache.current()).isEmpty();
+        verify(repository, times(2))
+            .findByStatusOrderByDownloadedAtDesc(DownloadStatus.SUCCESS, PageRequest.of(0, 9));
     }
 }

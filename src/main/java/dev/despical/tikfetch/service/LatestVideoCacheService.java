@@ -70,7 +70,7 @@ public class LatestVideoCacheService {
                 .toList();
 
             snapshot.set(latest);
-            LOGGER.debug("Refreshed the latest-video cache with {} entries.", latest.size());
+            LOGGER.info("Refreshed the latest-video backend cache with {} entries.", latest.size());
         } catch (RuntimeException exception) {
             LOGGER.warn("Could not refresh the latest-video cache; keeping the previous snapshot.", exception);
         }

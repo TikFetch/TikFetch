@@ -41,7 +41,6 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -55,9 +54,7 @@ import java.util.zip.ZipOutputStream;
 @RequiredArgsConstructor
 public class MediaController {
 
-    private static final CacheControl PUBLIC_MEDIA_CACHE = CacheControl.maxAge(Duration.ofDays(7))
-        .cachePublic()
-        .immutable();
+    private static final CacheControl NO_STORE = CacheControl.noCache();
 
     private final DownloadedVideoRepository videoRepository;
     private final DownloadedMediaItemRepository mediaItemRepository;
@@ -71,6 +68,7 @@ public class MediaController {
         Resource resource = storageService.loadAsResource(video.getVideoPath());
 
         return ResponseEntity.ok()
+            .cacheControl(NO_STORE)
             .contentType(MediaType.parseMediaType(video.getMimeType() == null ? "application/octet-stream" : video.getMimeType()))
             .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
                 .filename(downloadFileName(video.getId()))
@@ -88,6 +86,7 @@ public class MediaController {
         Resource resource = storageService.loadAsResource(video.getAudioPath());
 
         return ResponseEntity.ok()
+            .cacheControl(NO_STORE)
             .contentType(MediaType.parseMediaType(video.getAudioMimeType() == null ? "audio/mpeg" : video.getAudioMimeType()))
             .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
                 .filename("tikfetch.despical.dev-audio-%s.mp3".formatted(video.getId()))
@@ -111,7 +110,7 @@ public class MediaController {
             Resource resource = storageService.loadAsResource(item.getMediaPath());
 
             return ResponseEntity.ok()
-                .cacheControl(PUBLIC_MEDIA_CACHE)
+                .cacheControl(NO_STORE)
                 .contentType(MediaType.parseMediaType(item.getMimeType() == null ? "image/jpeg" : item.getMimeType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline()
                     .filename("tikfetch.despical.dev-photo-%s-%s.%s".formatted(id, position + 1, extensionOf(item.getMediaPath())))
@@ -122,7 +121,7 @@ public class MediaController {
 
         Resource resource = storageService.loadAsResource(video.getVideoPath());
         return ResponseEntity.ok()
-            .cacheControl(PUBLIC_MEDIA_CACHE)
+            .cacheControl(NO_STORE)
             .contentType(MediaType.parseMediaType(video.getMimeType() == null ? "video/mp4" : video.getMimeType()))
             .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline()
                 .filename(downloadFileName(video.getId()))
@@ -141,7 +140,7 @@ public class MediaController {
         Resource resource = storageService.loadAsResource(video.getThumbnailPath());
         MediaType mediaType = MediaTypeFactory.getMediaType(resource).orElse(MediaType.IMAGE_JPEG);
         return ResponseEntity.ok()
-            .cacheControl(PUBLIC_MEDIA_CACHE)
+            .cacheControl(NO_STORE)
             .contentType(mediaType)
             .body(resource);
     }
@@ -157,6 +156,7 @@ public class MediaController {
 
         Resource resource = storageService.loadAsResource(item.getMediaPath());
         return ResponseEntity.ok()
+            .cacheControl(NO_STORE)
             .contentType(MediaType.parseMediaType(item.getMimeType() == null ? "image/jpeg" : item.getMimeType()))
             .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
                 .filename("tikfetch.despical.dev-photo-%s-%s.%s".formatted(id, position + 1, extensionOf(item.getMediaPath())))
@@ -191,6 +191,7 @@ public class MediaController {
         };
 
         return ResponseEntity.ok()
+            .cacheControl(NO_STORE)
             .contentType(MediaType.parseMediaType("application/zip"))
             .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
                 .filename("tikfetch.despical.dev-gallery-%s.zip".formatted(video.getId()))
