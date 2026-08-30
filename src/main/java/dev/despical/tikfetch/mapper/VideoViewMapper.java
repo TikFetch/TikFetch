@@ -60,7 +60,7 @@ public interface VideoViewMapper {
     AttemptView toAttemptView(DownloadAttempt attempt);
 
     default String thumbnailUrl(DownloadedVideo video) {
-        if (video.getThumbnailPath() != null) {
+        if (video.getThumbnailPath() != null || video.getRemoteThumbnailUrl() != null) {
             return "/media/thumbnails/" + video.getId();
         }
 

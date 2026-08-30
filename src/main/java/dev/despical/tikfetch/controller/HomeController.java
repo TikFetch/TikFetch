@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
@@ -94,8 +95,7 @@ public class HomeController {
         }
 
         try {
-            var downloadedVideo = downloadCoordinator.download(form.url(), clientIP);
-            redirectAttributes.addFlashAttribute("successMessage", "Video downloaded successfully.");
+            var downloadedVideo = downloadCoordinator.queue(form.url(), clientIP);
             return "redirect:/downloads/" + downloadedVideo.getId();
         } catch (UserFacingException exception) {
             redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
@@ -108,8 +108,14 @@ public class HomeController {
     @GetMapping("/downloads/{id}")
     public String downloadResult(@PathVariable Long id, Model model) {
         var video = videoRepository.findById(id)
-            .filter(item -> item.getStatus() == DownloadStatus.SUCCESS)
             .orElseThrow(() -> new UserFacingException("That download is no longer available."));
+
+        if (video.getStatus() != DownloadStatus.READY && video.getStatus() != DownloadStatus.SUCCESS) {
+            model.addAttribute("downloadId", video.getId());
+            model.addAttribute("downloadFailed", video.getStatus() == DownloadStatus.FAILED);
+            model.addAttribute("downloadError", video.getErrorMessage());
+            return "public/download-pending";
+        }
 
         if (!model.containsAttribute("downloadForm")) {
             model.addAttribute("downloadForm", new DownloadForm(""));
@@ -119,6 +125,20 @@ public class HomeController {
         model.addAttribute("galleryImages", galleryImages(video));
         model.addAttribute("latestVideos", latestVideoCacheService.current());
         return "public/download-result";
+    }
+
+    @GetMapping("/downloads/{id}/status")
+    @ResponseBody
+    public DownloadStatusResponse downloadStatus(@PathVariable Long id) {
+        var video = videoRepository.findById(id)
+            .orElseThrow(() -> new UserFacingException("That download is no longer available."));
+
+        return switch (video.getStatus()) {
+            case READY -> new DownloadStatusResponse("ready", "/downloads/" + id, null, false);
+            case SUCCESS -> new DownloadStatusResponse("ready", "/downloads/" + id, null, true);
+            case FAILED -> new DownloadStatusResponse("failed", null, video.getErrorMessage(), false);
+            case PENDING, PROCESSING -> new DownloadStatusResponse("processing", null, null, false);
+        };
     }
 
     private List<GalleryImageView> galleryImages(DownloadedVideo video) {
@@ -150,5 +170,8 @@ public class HomeController {
         }
 
         return video;
+    }
+
+    public record DownloadStatusResponse(String status, String resultUrl, String message, boolean mediaCached) {
     }
 }
