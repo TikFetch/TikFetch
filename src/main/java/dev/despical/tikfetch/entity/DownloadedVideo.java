@@ -73,6 +73,12 @@ public class DownloadedVideo {
     @Column(name = "video_path", length = 1024)
     private String videoPath;
 
+    @Column(name = "remote_video_url", columnDefinition = "TEXT")
+    private String remoteVideoUrl;
+
+    @Column(name = "remote_thumbnail_url", columnDefinition = "TEXT")
+    private String remoteThumbnailUrl;
+
     @Column(name = "mime_type", length = 120)
     private String mimeType;
 

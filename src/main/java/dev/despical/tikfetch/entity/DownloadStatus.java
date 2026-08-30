@@ -27,6 +27,7 @@ public enum DownloadStatus {
 
     PENDING,
     PROCESSING,
+    READY,
     SUCCESS,
     FAILED
 }
