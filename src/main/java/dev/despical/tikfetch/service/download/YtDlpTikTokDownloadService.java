@@ -65,7 +65,6 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
 
     private static final Set<String> VIDEO_EXTENSIONS = Set.of("mp4", "webm", "mov", "mkv");
     private static final Set<String> IMAGE_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp", "image");
-    private static final Set<String> AUDIO_EXTENSIONS = Set.of("mp3");
     private static final int MAX_MEDIA_DOWNLOAD_ATTEMPTS = 2;
 
     private static final Pattern IMAGE_POST_PATTERN = Pattern.compile("\"imagePost\"\\s*:\\s*\\{\"images\"\\s*:\\s*\\[(.*?)]\\s*,\\s*\"cover\"", Pattern.DOTALL);
@@ -116,7 +115,7 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
                 .orElseThrow(() -> new UserFacingException("yt-dlp finished, but no supported media file was created."));
 
             boolean image = videoFile.isEmpty();
-            Path audioFile = image ? null : downloadAudio(target, temporaryDirectory).orElse(null);
+            Path audioFile = image ? null : extractAudio(videoFile.orElseThrow(), temporaryDirectory).orElse(null);
             Path thumbnailFile = image ? null : imageFile.orElse(null);
 
             readyForCaller = true;
@@ -125,6 +124,200 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
             if (!readyForCaller) {
                 storageService.deleteDirectoryQuietly(temporaryDirectory);
             }
+        }
+    }
+
+    @Override
+    public Optional<ResolvedTikTokVideo> resolveForFastStart(ValidatedTikTokUrl url) {
+        DownloadTarget target = resolveDownloadTarget(url);
+
+        if (target.mediaKind() != MediaKind.VIDEO) {
+            return Optional.empty();
+        }
+
+        Path cookieFile = createTemporaryCookieFile();
+
+        try {
+            for (int attempt = 1; attempt <= MAX_MEDIA_DOWNLOAD_ATTEMPTS; attempt++) {
+                List<String> command = new ArrayList<>();
+                command.add(properties.ytDlp().path());
+                addCommonOptions(command, cookieFile.toString());
+                command.add("--no-playlist");
+                command.add("--dump-single-json");
+                command.add("--skip-download");
+                command.add("-f");
+                command.add(properties.ytDlp().format());
+                command.add(target.ytDlpUrl());
+
+                ProcessResult result = run(command, null, Duration.ofSeconds(properties.ytDlp().timeoutSeconds()));
+
+                if (result.exitCode() == 0) {
+                    JsonNode root = parseJson(result.stdout());
+                    String videoUrl = selectedVideoUrl(root);
+                    return Optional.of(resolvedVideoFromJson(root, videoUrl, cookieHeader(cookieFile, URI.create(videoUrl).getHost())));
+                }
+
+                if (attempt < MAX_MEDIA_DOWNLOAD_ATTEMPTS && isRetryableTikTokError(result.stderr())) {
+                    LOGGER.warn("TikTok returned a temporary extractor error while resolving media; retrying");
+                    continue;
+                }
+
+                throw new UserFacingException(cleanYtDlpError(result.stderr()));
+            }
+        } finally {
+            try {
+                Files.deleteIfExists(cookieFile);
+            } catch (IOException exception) {
+                LOGGER.debug("Could not delete the temporary yt-dlp cookie file", exception);
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
+    public DownloadedTikTokVideo download(ResolvedTikTokVideo resolved) {
+        Path temporaryDirectory = storageService.createTempDirectory();
+        boolean readyForCaller = false;
+
+        try {
+            Path videoFile = temporaryDirectory.resolve("video.mp4");
+            downloadRemoteFile(resolved.videoUrl(), videoFile, "TikTok video", resolved.cookieHeader());
+
+            Path thumbnailFile = null;
+            if (resolved.thumbnailUrl() != null && !resolved.thumbnailUrl().isBlank()) {
+                try {
+                    thumbnailFile = temporaryDirectory.resolve("thumbnail.jpg");
+                    downloadRemoteFile(resolved.thumbnailUrl(), thumbnailFile, "TikTok thumbnail", resolved.cookieHeader());
+                } catch (UserFacingException exception) {
+                    thumbnailFile = null;
+                    LOGGER.debug("Could not cache the resolved TikTok thumbnail", exception);
+                }
+            }
+
+            Path audioFile = extractAudio(videoFile, temporaryDirectory).orElse(null);
+            readyForCaller = true;
+            return new DownloadedTikTokVideo(
+                resolved.title(), resolved.author(), resolved.authorUrl(), resolved.sourceVideoId(),
+                resolved.durationSeconds(), resolved.likeCount(), resolved.commentCount(), videoFile,
+                audioFile, false, List.of(), thumbnailFile, temporaryDirectory
+            );
+        } finally {
+            if (!readyForCaller) {
+                storageService.deleteDirectoryQuietly(temporaryDirectory);
+            }
+        }
+    }
+
+    private JsonNode parseJson(String json) {
+        try {
+            return objectMapper.readTree(json);
+        } catch (IOException exception) {
+            throw new UserFacingException("Could not parse TikTok media information.", exception);
+        }
+    }
+
+    private ResolvedTikTokVideo resolvedVideoFromJson(JsonNode root, String videoUrl, String cookieHeader) {
+        Metadata metadata = metadataFromJson(root);
+        JsonNode selected = root.path("requested_downloads").isArray() && !root.path("requested_downloads").isEmpty()
+            ? root.path("requested_downloads").get(0)
+            : root;
+        String thumbnailUrl = text(root, "thumbnail").orElse(null);
+        Long fileSize = longValue(selected, "filesize");
+
+        if (fileSize == null) {
+            fileSize = longValue(selected, "filesize_approx");
+        }
+
+        return new ResolvedTikTokVideo(
+            metadata.title(), metadata.author(), metadata.authorUrl(), metadata.id(), metadata.durationSeconds(),
+            metadata.likeCount(), metadata.commentCount(), videoUrl, thumbnailUrl, fileSize, cookieHeader
+        );
+    }
+
+    private String selectedVideoUrl(JsonNode root) {
+        JsonNode selected = root.path("requested_downloads").isArray() && !root.path("requested_downloads").isEmpty()
+            ? root.path("requested_downloads").get(0)
+            : root;
+        return text(selected, "url")
+            .or(() -> text(root, "url"))
+            .orElseThrow(() -> new UserFacingException("TikTok did not provide a downloadable video URL."));
+    }
+
+    private Path createTemporaryCookieFile() {
+        try {
+            Path cookieFile = Files.createTempFile("tikfetch-yt-dlp-", ".cookies.txt");
+            String configured = properties.ytDlp().cookiesPath();
+
+            if (configured != null && !configured.isBlank() && Files.isRegularFile(Path.of(configured.trim()))) {
+                Files.copy(Path.of(configured.trim()), cookieFile, StandardCopyOption.REPLACE_EXISTING);
+            } else {
+                Files.writeString(cookieFile, "# Netscape HTTP Cookie File\n", StandardCharsets.UTF_8);
+            }
+
+            return cookieFile;
+        } catch (IOException exception) {
+            throw new UserFacingException("Could not prepare the temporary TikTok session.", exception);
+        }
+    }
+
+    private String cookieHeader(Path cookieFile, String requestHost) {
+        if (requestHost == null || requestHost.isBlank()) {
+            return null;
+        }
+
+        try {
+            return Files.readAllLines(cookieFile, StandardCharsets.UTF_8).stream()
+                .map(line -> line.startsWith("#HttpOnly_") ? line.substring("#HttpOnly_".length()) : line)
+                .filter(line -> !line.isBlank() && !line.startsWith("#"))
+                .map(line -> line.split("\\t", 7))
+                .filter(parts -> parts.length == 7 && domainMatches(requestHost, parts[0]))
+                .map(parts -> parts[5] + "=" + parts[6])
+                .reduce((first, second) -> first + "; " + second)
+                .orElse(null);
+        } catch (IOException exception) {
+            LOGGER.debug("Could not read the temporary TikTok cookie file", exception);
+            return null;
+        }
+    }
+
+    private boolean domainMatches(String requestHost, String cookieDomain) {
+        String host = requestHost.toLowerCase(Locale.ROOT);
+        String domain = cookieDomain.toLowerCase(Locale.ROOT);
+        return host.equals(domain) || host.endsWith(domain.startsWith(".") ? domain : "." + domain);
+    }
+
+    private void downloadRemoteFile(String sourceUrl, Path target, String label, String cookieHeader) {
+        try {
+            HttpRequest.Builder request = HttpRequest.newBuilder(URI.create(sourceUrl))
+                .timeout(Duration.ofSeconds(properties.ytDlp().timeoutSeconds()))
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36")
+                .header("Referer", "https://www.tiktok.com/")
+                .GET();
+
+            if (cookieHeader != null && !cookieHeader.isBlank()) {
+                request.header("Cookie", cookieHeader);
+            }
+
+            HttpResponse<InputStream> response = httpClient.send(request.build(), HttpResponse.BodyHandlers.ofInputStream());
+
+            if (response.statusCode() >= 400) {
+                response.body().close();
+                throw new UserFacingException("Could not download the resolved %s.".formatted(label));
+            }
+
+            try (InputStream body = response.body()) {
+                Files.copy(body, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            if (!Files.isRegularFile(target) || Files.size(target) == 0) {
+                throw new UserFacingException("The resolved %s was empty.".formatted(label));
+            }
+        } catch (IOException exception) {
+            throw new UserFacingException("Could not download the resolved %s.".formatted(label), exception);
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new UserFacingException("The resolved %s download was interrupted.".formatted(label), exception);
         }
     }
 
@@ -187,8 +380,8 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
             storageService.deleteDirectoryQuietly(attemptDirectory);
             String error = cleanYtDlpError(result.stderr());
 
-            if (attempt < MAX_MEDIA_DOWNLOAD_ATTEMPTS && isRetryableMediaDeliveryError(result.stderr())) {
-                LOGGER.warn("TikTok returned a temporary media delivery error; resolving the media URL again");
+            if (attempt < MAX_MEDIA_DOWNLOAD_ATTEMPTS && isRetryableTikTokError(result.stderr())) {
+                LOGGER.warn("TikTok returned a temporary extractor or media delivery error; retrying with a fresh request");
                 continue;
             }
 
@@ -226,7 +419,7 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
         return run(command, attemptDirectory, Duration.ofSeconds(properties.ytDlp().timeoutSeconds()));
     }
 
-    private boolean isRetryableMediaDeliveryError(String stderr) {
+    static boolean isRetryableTikTokError(String stderr) {
         if (stderr == null) {
             return false;
         }
@@ -234,41 +427,66 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
         String error = stderr.toLowerCase(Locale.ROOT);
         return error.contains("http error 404")
             || error.contains("did not get any data blocks")
-            || error.contains("unable to download video data");
+            || error.contains("unable to download video data")
+            || error.contains("unexpected response from webpage request")
+            || error.contains("unable to extract universal data for rehydration")
+            || error.contains("unable to extract webpage video data");
     }
 
-    private Optional<Path> downloadAudio(DownloadTarget target, Path temporaryDirectory) {
-        String outputTemplate = temporaryDirectory.resolve("audio.%(ext)s").toString();
+    private Optional<Path> extractAudio(Path videoFile, Path temporaryDirectory) {
+        Path outputFile = temporaryDirectory.resolve("audio.mp3");
         List<String> command = new ArrayList<>();
-        command.add(properties.ytDlp().path());
-
-        addCommonOptions(command);
-        command.add("--no-playlist");
-        command.add("--no-part");
-        command.add("--extract-audio");
-        command.add("--audio-format");
-        command.add("mp3");
-        command.add("--audio-quality");
-        command.add("0");
-        command.add("-o");
-        command.add(outputTemplate);
-        command.add(target.ytDlpUrl());
+        command.add(ffmpegExecutable());
+        command.addAll(List.of(
+            "-y",
+            "-nostdin",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-i",
+            videoFile.toAbsolutePath().toString(),
+            "-vn",
+            "-codec:a",
+            "libmp3lame",
+            "-q:a",
+            "0",
+            outputFile.toAbsolutePath().toString()
+        ));
 
         ProcessResult result;
 
         try {
             result = run(command, temporaryDirectory, Duration.ofSeconds(properties.ytDlp().timeoutSeconds()));
         } catch (UserFacingException exception) {
-            LOGGER.warn("Could not extract TikTok audio as MP3: {}", exception.getMessage());
+            LOGGER.warn("Could not extract the downloaded TikTok audio as MP3: {}", exception.getMessage());
             return Optional.empty();
         }
 
         if (result.exitCode() != 0) {
-            LOGGER.warn("Could not extract TikTok audio as MP3: {}", cleanYtDlpError(result.stderr()));
+            LOGGER.warn("Could not extract the downloaded TikTok audio as MP3: {}", cleanYtDlpError(result.stderr()));
             return Optional.empty();
         }
 
-        return locateFile(temporaryDirectory, AUDIO_EXTENSIONS);
+        return Files.isRegularFile(outputFile) ? Optional.of(outputFile) : Optional.empty();
+    }
+
+    private String ffmpegExecutable() {
+        String configured = properties.ytDlp().ffmpegLocation();
+
+        if (configured == null || configured.isBlank()) {
+            return "ffmpeg";
+        }
+
+        Path configuredPath = Path.of(configured.trim());
+
+        if (!Files.isDirectory(configuredPath)) {
+            return configured.trim();
+        }
+
+        String executable = System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("windows")
+            ? "ffmpeg.exe"
+            : "ffmpeg";
+        return configuredPath.resolve(executable).toString();
     }
 
     private Optional<Metadata> metadataFromInfoJson(Path temporaryDirectory) {
@@ -470,7 +688,11 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
     }
 
     private void addCommonOptions(List<String> command) {
-        addOption(command, "--cookies", properties.ytDlp().cookiesPath());
+        addCommonOptions(command, properties.ytDlp().cookiesPath());
+    }
+
+    private void addCommonOptions(List<String> command, String cookiesPath) {
+        addOption(command, "--cookies", cookiesPath);
         addOption(command, "--cookies-from-browser", properties.ytDlp().cookiesFromBrowser());
         addOption(command, "--proxy", properties.ytDlp().proxy());
         addOption(command, "--user-agent", properties.ytDlp().userAgent());
