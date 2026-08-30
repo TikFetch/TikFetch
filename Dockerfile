@@ -30,10 +30,12 @@ ENV SPRING_PROFILES_ACTIVE=production \
 WORKDIR /app
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl ffmpeg python3 \
-    && curl -fL https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
-    && chmod +x /usr/local/bin/yt-dlp \
+    && apt-get install -y --no-install-recommends ca-certificates curl ffmpeg python3 python3-venv \
+    && python3 -m venv /opt/yt-dlp \
+    && /opt/yt-dlp/bin/pip install --no-cache-dir --upgrade --pre "yt-dlp[default,curl-cffi]" \
+    && ln -s /opt/yt-dlp/bin/yt-dlp /usr/local/bin/yt-dlp \
     && /usr/local/bin/yt-dlp --version \
+    && /usr/local/bin/yt-dlp --list-impersonate-targets | grep -q Chrome \
     && useradd --system --create-home --home-dir /app --shell /usr/sbin/nologin tikfetch \
     && mkdir -p /var/lib/tikfetch/storage \
     && chown -R tikfetch:tikfetch /app /var/lib/tikfetch \
