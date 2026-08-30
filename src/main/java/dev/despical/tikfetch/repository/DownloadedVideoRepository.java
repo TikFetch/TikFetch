@@ -37,6 +37,8 @@ public interface DownloadedVideoRepository extends JpaRepository<DownloadedVideo
 
     Optional<DownloadedVideo> findFirstByNormalizedUrlAndStatusOrderByDownloadedAtDesc(String normalizedUrl, DownloadStatus status);
 
+    Optional<DownloadedVideo> findFirstByNormalizedUrlAndStatusOrderByCreatedAtDesc(String normalizedUrl, DownloadStatus status);
+
     List<DownloadedVideo> findByStatusOrderByDownloadedAtDesc(DownloadStatus status, Pageable pageable);
 
     long countByStatus(DownloadStatus status);
