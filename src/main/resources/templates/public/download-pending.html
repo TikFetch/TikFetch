@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('Preparing Download', ~{::content})}">
+<main th:fragment="content" class="with-site-header flex min-h-screen flex-col">
+    <div th:replace="~{fragments/header :: header}"></div>
+    <section class="flex flex-1 items-center bg-white">
+        <div class="download-result-shell w-full">
+            <div class="mx-auto max-w-2xl py-16 text-center"
+                 data-download-pending
+                 th:attr="data-status-url=@{/downloads/{id}/status(id=${downloadId})}">
+                <p class="flex items-center justify-center gap-2 text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    <svg th:replace="~{fragments/brand-icon :: icon('h-6 w-6 rounded-md')}"></svg>
+                    <span>TikFetch</span>
+                </p>
+                <h1 class="mt-3 text-4xl font-semibold tracking-tight text-slate-950"
+                    data-download-status-title
+                    th:text="${downloadFailed} ? 'Download failed' : 'Preparing your download'">
+                    Preparing your download
+                </h1>
+                <p class="mx-auto mt-5 max-w-xl text-base leading-7 text-slate-600"
+                   data-download-status-message
+                   th:text="${downloadFailed ? (downloadError != null ? downloadError : 'The media could not be downloaded.') : 'TikFetch is fetching the media and preparing the MP4, photos, and MP3. This page will continue automatically.'}">
+                    TikFetch is fetching the media. This page will continue automatically.
+                </p>
+
+                <div class="download-progress is-active mx-auto mt-8 max-w-lg"
+                     data-pending-progress
+                     th:hidden="${downloadFailed}"
+                     aria-live="polite">
+                    <div class="flex items-center text-xs font-medium text-slate-600">
+                        <span>Fetching media</span>
+                    </div>
+                    <div class="download-progress-track">
+                        <div class="download-progress-bar"></div>
+                    </div>
+                </div>
+
+                <a href="/" data-download-retry
+                   th:hidden="${!downloadFailed}"
+                   class="mt-8 inline-flex rounded-md bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                    Try another link
+                </a>
+            </div>
+        </div>
+    </section>
+    <div th:replace="~{fragments/footer :: footer}"></div>
+</main>
+</html>

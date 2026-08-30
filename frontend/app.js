@@ -7,6 +7,8 @@ const galleryViewers = document.querySelectorAll('[data-gallery-viewer]');
 const passkeyLoginButton = document.querySelector('[data-passkey-login]');
 const passkeyRegisterButton = document.querySelector('[data-passkey-register]');
 const adminNavScrolls = document.querySelectorAll('.admin-nav-scroll');
+const pendingDownload = document.querySelector('[data-download-pending]');
+const pendingMediaCache = document.querySelector('[data-download-cache-pending]');
 
 downloadForms.forEach((downloadForm) => {
     downloadForm.addEventListener('submit', async (event) => {
@@ -75,6 +77,89 @@ downloadForms.forEach((downloadForm) => {
         }
     });
 });
+
+if (pendingDownload) {
+    const statusUrl = pendingDownload.dataset.statusUrl;
+    const title = pendingDownload.querySelector('[data-download-status-title]');
+    const message = pendingDownload.querySelector('[data-download-status-message]');
+    const progress = pendingDownload.querySelector('[data-pending-progress]');
+    const retry = pendingDownload.querySelector('[data-download-retry]');
+    const startedAt = Date.now();
+    let pollCount = 0;
+
+    const showFailure = (failureMessage) => {
+        if (title) title.textContent = 'Download failed';
+        if (message) message.textContent = failureMessage || 'The media could not be downloaded. Please try again.';
+        if (progress) progress.hidden = true;
+        if (retry) retry.hidden = false;
+    };
+
+    const poll = async () => {
+        try {
+            const response = await fetch(statusUrl, {
+                credentials: 'same-origin',
+                cache: 'no-store',
+                headers: {'Accept': 'application/json'},
+            });
+
+            if (!response.ok) {
+                throw new Error('Could not check the download status.');
+            }
+
+            const result = await response.json();
+
+            if (result.status === 'ready') {
+                window.location.replace(result.resultUrl);
+                return;
+            }
+
+            if (result.status === 'failed') {
+                showFailure(result.message);
+                return;
+            }
+
+            pollCount += 1;
+            window.setTimeout(poll, pollCount < 30 ? 300 : 1000);
+        } catch {
+            pollCount += 1;
+
+            if (pollCount >= 6) {
+                showFailure('The status connection was interrupted. Refresh this page to continue checking.');
+                return;
+            }
+
+            window.setTimeout(poll, 1500);
+        }
+    };
+
+    poll();
+}
+
+if (pendingMediaCache) {
+    const statusUrl = pendingMediaCache.dataset.statusUrl;
+
+    const pollMediaCache = async () => {
+        try {
+            const response = await fetch(statusUrl, {
+                credentials: 'same-origin',
+                cache: 'no-store',
+                headers: {'Accept': 'application/json'},
+            });
+            const result = response.ok ? await response.json() : null;
+
+            if (result?.mediaCached) {
+                window.location.reload();
+                return;
+            }
+        } catch {
+            // The signed remote video remains usable while local caching is retried by the user.
+        }
+
+        window.setTimeout(pollMediaCache, 500);
+    };
+
+    window.setTimeout(pollMediaCache, 500);
+}
 
 const isTikTokUrl = (value) => {
     try {
