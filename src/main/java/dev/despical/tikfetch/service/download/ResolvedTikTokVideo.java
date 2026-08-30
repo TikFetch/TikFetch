@@ -18,24 +18,22 @@
 
 package dev.despical.tikfetch.service.download;
 
-import dev.despical.tikfetch.validation.ValidatedTikTokUrl;
-
-import java.util.Optional;
-
 /**
  * @author Despical
  * <p>
- * Created at 12.06.2026
+ * Created at 30.08.2026
  */
-public interface TikTokDownloadService {
-
-    DownloadedTikTokVideo download(ValidatedTikTokUrl url);
-
-    default Optional<ResolvedTikTokVideo> resolveForFastStart(ValidatedTikTokUrl url) {
-        return Optional.empty();
-    }
-
-    default DownloadedTikTokVideo download(ResolvedTikTokVideo resolved) {
-        throw new UnsupportedOperationException("Fast-start downloads are not supported.");
-    }
+public record ResolvedTikTokVideo(
+    String title,
+    String author,
+    String authorUrl,
+    String sourceVideoId,
+    Long durationSeconds,
+    Long likeCount,
+    Long commentCount,
+    String videoUrl,
+    String thumbnailUrl,
+    Long fileSize,
+    String cookieHeader
+) {
 }
