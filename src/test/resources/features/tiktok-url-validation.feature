@@ -2,8 +2,14 @@ Feature: TikTok URL validation
 
   Scenario: Normalize a TikTok video URL
     When the user validates the TikTok URL "https://www.tiktok.com/@creator/video/123?lang=en"
-    Then the original URL should contain "?lang=en"
+    Then the original URL should be "https://www.tiktok.com/@creator/video/123"
     And the normalized URL should be "https://www.tiktok.com/@creator/video/123"
+    And the media kind should be "VIDEO"
+
+  Scenario: Remove web sharing parameters from a TikTok video URL
+    When the user validates the TikTok URL "https://www.tiktok.com/@sebastiansametski/video/7679733116382235925?is_from_webapp=1&sender_device=pc"
+    Then the original URL should be "https://www.tiktok.com/@sebastiansametski/video/7679733116382235925"
+    And the normalized URL should be "https://www.tiktok.com/@sebastiansametski/video/7679733116382235925"
     And the media kind should be "VIDEO"
 
   Scenario: Normalize a TikTok photo URL

@@ -52,9 +52,9 @@ public class TikTokUrlSteps {
         assertThat(validatedUrl.normalizedUrl()).isEqualTo(expectedUrl);
     }
 
-    @Then("the original URL should contain {string}")
-    public void theOriginalUrlShouldContain(String expectedText) {
-        assertThat(validatedUrl.originalUrl()).contains(expectedText);
+    @Then("the original URL should be {string}")
+    public void theOriginalUrlShouldBe(String expectedUrl) {
+        assertThat(validatedUrl.originalUrl()).isEqualTo(expectedUrl);
     }
 
     @Then("the media kind should be {string}")

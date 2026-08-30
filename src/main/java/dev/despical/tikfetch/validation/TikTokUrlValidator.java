@@ -74,7 +74,8 @@ public class TikTokUrlValidator {
             throw new IllegalArgumentException("Use a valid TikTok URL.");
         }
 
-        return new ValidatedTikTokUrl(trimmed, normalized.toString(), mediaKind);
+        String canonicalUrl = normalized.toString();
+        return new ValidatedTikTokUrl(canonicalUrl, canonicalUrl, mediaKind);
     }
 
     private URI parse(String rawUrl) {
