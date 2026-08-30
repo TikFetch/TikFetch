@@ -14,12 +14,14 @@ import dev.despical.tikfetch.entity.DownloadStatus;
 import dev.despical.tikfetch.entity.DownloadedVideo;
 import dev.despical.tikfetch.repository.DownloadedMediaItemRepository;
 import dev.despical.tikfetch.repository.DownloadedVideoRepository;
+import dev.despical.tikfetch.service.download.RemoteMediaSessionStore;
 import dev.despical.tikfetch.storage.LocalFileStorageService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -27,14 +29,19 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class MediaControllerTest {
 
     @Test
-    void servesImmutableMediaWithASevenDayPublicCache() {
+    void servesImmutableMediaWithASevenDayPublicCache() throws Exception {
         DownloadedVideoRepository videoRepository = mock(DownloadedVideoRepository.class);
         DownloadedMediaItemRepository mediaRepository = mock(DownloadedMediaItemRepository.class);
         LocalFileStorageService storageService = mock(LocalFileStorageService.class);
+        RemoteMediaSessionStore remoteMediaSessionStore = mock(RemoteMediaSessionStore.class);
         DownloadedVideo video = new DownloadedVideo();
         video.setId(49L);
         video.setStatus(DownloadStatus.SUCCESS);
@@ -45,11 +52,19 @@ class MediaControllerTest {
         when(storageService.loadAsResource(video.getVideoPath()))
             .thenReturn(new ByteArrayResource(new byte[] {1}));
 
-        var controller = new MediaController(videoRepository, mediaRepository, storageService);
-        var response = controller.stream(49L, null);
+        var controller = new MediaController(videoRepository, mediaRepository, storageService, remoteMediaSessionStore);
+        var response = controller.stream(49L, null, null);
 
         assertThat(response.getHeaders().getFirst(HttpHeaders.CACHE_CONTROL)).isEqualTo(
             CacheControl.maxAge(Duration.ofDays(7)).cachePublic().immutable().getHeaderValue()
         );
+
+        MockMvcBuilders.standaloneSetup(controller)
+            .build()
+            .perform(get("/media/stream/49"))
+            .andExpect(status().isOk())
+            .andExpect(header().string(HttpHeaders.CACHE_CONTROL,
+                CacheControl.maxAge(Duration.ofDays(7)).cachePublic().immutable().getHeaderValue()))
+            .andExpect(content().bytes(new byte[] {1}));
     }
 }
