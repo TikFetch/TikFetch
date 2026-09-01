@@ -30,6 +30,7 @@ import dev.despical.tikfetch.validation.ValidatedTikTokUrl.MediaKind;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -66,10 +67,16 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
     private static final Set<String> VIDEO_EXTENSIONS = Set.of("mp4", "webm", "mov", "mkv");
     private static final Set<String> IMAGE_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp", "image");
     private static final int MAX_MEDIA_DOWNLOAD_ATTEMPTS = 2;
+    private static final URI SSSTIK_PAGE_URI = URI.create("https://ssstik.io/tr");
+    private static final URI SSSTIK_RESOLVE_URI = URI.create("https://ssstik.io/abc?url=dl");
+    private static final String BROWSER_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36";
 
     private static final Pattern IMAGE_POST_PATTERN = Pattern.compile("\"imagePost\"\\s*:\\s*\\{\"images\"\\s*:\\s*\\[(.*?)]\\s*,\\s*\"cover\"", Pattern.DOTALL);
     private static final Pattern IMAGE_ENTRY_PATTERN = Pattern.compile("\\{\"imageURL\"\\s*:\\s*\\{\"urlList\"\\s*:\\s*\\[(.*?)]", Pattern.DOTALL);
     private static final Pattern JSON_STRING_PATTERN = Pattern.compile("\"((?:\\\\.|[^\"\\\\])*)\"");
+    private static final Pattern SSSTIK_TOKEN_PATTERN = Pattern.compile("s_tt\\s*=\\s*'([^']+)'");
+    private static final Pattern SSSTIK_VIDEO_URL_PATTERN = Pattern.compile("<a\\s+href=\"([^\"]+)\"[^>]*\\bwithout_watermark\\b", Pattern.CASE_INSENSITIVE);
+    private static final Pattern TIKTOK_VIDEO_ID_PATTERN = Pattern.compile("/video/(\\d+)");
 
     private final AppProperties properties;
     private final LocalFileStorageService storageService;
@@ -135,6 +142,12 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
             return Optional.empty();
         }
 
+        Optional<ResolvedTikTokVideo> sssTikResult = resolveWithSssTik(target);
+
+        if (sssTikResult.isPresent()) {
+            return sssTikResult;
+        }
+
         Path cookieFile = createTemporaryCookieFile();
 
         try {
@@ -173,6 +186,88 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
         }
 
         return Optional.empty();
+    }
+
+    private Optional<ResolvedTikTokVideo> resolveWithSssTik(DownloadTarget target) {
+        try {
+            HttpResponse<String> page = httpClient.send(HttpRequest.newBuilder(SSSTIK_PAGE_URI)
+                .timeout(Duration.ofSeconds(properties.ytDlp().socketTimeoutSeconds()))
+                .header("User-Agent", BROWSER_USER_AGENT)
+                .GET()
+                .build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+            if (page.statusCode() != 200) {
+                return Optional.empty();
+            }
+
+            var tokenMatcher = SSSTIK_TOKEN_PATTERN.matcher(page.body());
+            if (!tokenMatcher.find()) {
+                return Optional.empty();
+            }
+
+            String form = "id=" + URLEncoder.encode(target.ytDlpUrl(), StandardCharsets.UTF_8)
+                + "&locale=tr&tt=" + URLEncoder.encode(tokenMatcher.group(1), StandardCharsets.UTF_8)
+                + "&debug=ab%3D0%26loc%3DTR";
+
+            HttpResponse<String> response = httpClient.send(HttpRequest.newBuilder(SSSTIK_RESOLVE_URI)
+                .timeout(Duration.ofSeconds(properties.ytDlp().socketTimeoutSeconds()))
+                .header("User-Agent", BROWSER_USER_AGENT)
+                .header("Accept", "text/html, */*; q=0.01")
+                .header("Origin", "https://ssstik.io")
+                .header("Referer", "https://ssstik.io/tr")
+                .header("HX-Request", "true")
+                .header("HX-Target", "target")
+                .header("HX-Trigger", "main_page_text")
+                .header("HX-Current-URL", "https://ssstik.io/tr")
+                .POST(HttpRequest.BodyPublishers.ofString(form, StandardCharsets.UTF_8))
+                .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                .build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+            if (response.statusCode() != 200) {
+                return Optional.empty();
+            }
+
+            return sssTikVideoUrl(response.body()).map(videoUrl -> new ResolvedTikTokVideo(
+                "TikTok video", null, null, sourceVideoId(target.ytDlpUrl()), null, null, null,
+                videoUrl, null, null, null
+            ));
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            return Optional.empty();
+        } catch (IOException | RuntimeException exception) {
+            LOGGER.debug("SSSTik fallback could not resolve the TikTok video: {}", exception.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    static Optional<String> sssTikVideoUrl(String responseBody) {
+        if (responseBody == null || responseBody.isBlank()) {
+            return Optional.empty();
+        }
+
+        var matcher = SSSTIK_VIDEO_URL_PATTERN.matcher(responseBody);
+        if (!matcher.find()) {
+            return Optional.empty();
+        }
+
+        String url = matcher.group(1).replace("&amp;", "&");
+
+        try {
+            URI uri = URI.create(url);
+            if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null
+                || !(uri.getHost().equals("tikcdn.io") || uri.getHost().endsWith(".tikcdn.io"))) {
+                return Optional.empty();
+            }
+
+            return Optional.of(uri.toString());
+        } catch (IllegalArgumentException exception) {
+            return Optional.empty();
+        }
+    }
+
+    private String sourceVideoId(String url) {
+        var matcher = TIKTOK_VIDEO_ID_PATTERN.matcher(url);
+        return matcher.find() ? matcher.group(1) : null;
     }
 
     @Override

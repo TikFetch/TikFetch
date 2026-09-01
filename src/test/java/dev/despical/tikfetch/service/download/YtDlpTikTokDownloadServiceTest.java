@@ -38,4 +38,14 @@ class YtDlpTikTokDownloadServiceTest {
         )).isFalse();
         assertThat(YtDlpTikTokDownloadService.isRetryableTikTokError(null)).isFalse();
     }
+
+    @Test
+    void extractsOnlyTheExpectedSssTikMediaHost() {
+        assertThat(YtDlpTikTokDownloadService.sssTikVideoUrl(
+            "<a href=\"https://tikcdn.io/ssstik/123?st=token&amp;e=123\" class=\"without_watermark\">Download</a>"
+        )).contains("https://tikcdn.io/ssstik/123?st=token&e=123");
+        assertThat(YtDlpTikTokDownloadService.sssTikVideoUrl(
+            "<a href=\"https://example.com/video.mp4\" class=\"without_watermark\">Download</a>"
+        )).isEmpty();
+    }
 }
