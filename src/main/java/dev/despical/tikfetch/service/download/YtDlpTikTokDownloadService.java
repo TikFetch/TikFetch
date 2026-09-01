@@ -78,6 +78,7 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
     private static final Pattern SSSTIK_VIDEO_URL_PATTERN = Pattern.compile("<a\\s+href=\"([^\"]+)\"[^>]*\\bwithout_watermark\\b", Pattern.CASE_INSENSITIVE);
     private static final Pattern SSSTIK_THUMBNAIL_URL_PATTERN = Pattern.compile("background-image:\\s*url\\((https://[^)]+)\\)", Pattern.CASE_INSENSITIVE);
     private static final Pattern SSSTIK_AUTHOR_PATTERN = Pattern.compile("<h2>\\s*([^<]+?)\\s*</h2>", Pattern.CASE_INSENSITIVE);
+    private static final Pattern SSSTIK_TITLE_PATTERN = Pattern.compile("<p\\s+class=\"maintext\">\\s*(.*?)\\s*</p>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private static final Pattern SSSTIK_LIKE_COUNT_PATTERN = Pattern.compile("feather-thumbs-up.*?</svg>\\s*<div>\\s*([^<]+?)\\s*</div>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private static final Pattern SSSTIK_COMMENT_COUNT_PATTERN = Pattern.compile("feather-message-square.*?</svg>\\s*<div>\\s*([^<]+?)\\s*</div>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private static final Pattern COMPACT_COUNT_PATTERN = Pattern.compile("([0-9]+(?:[.,][0-9]+)?)\\s*([KM])?", Pattern.CASE_INSENSITIVE);
@@ -102,12 +103,20 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
 
     @Override
     public DownloadedTikTokVideo download(ValidatedTikTokUrl url) {
+        DownloadTarget target = resolveDownloadTarget(url);
+
+        if (target.mediaKind() == MediaKind.VIDEO) {
+            Optional<ResolvedTikTokVideo> sssTikResult = resolveWithSssTik(target);
+
+            if (sssTikResult.isPresent()) {
+                return download(sssTikResult.get());
+            }
+        }
+
         Path temporaryDirectory = storageService.createTempDirectory();
         boolean readyForCaller = false;
 
         try {
-            DownloadTarget target = resolveDownloadTarget(url);
-
             runDownload(target, temporaryDirectory);
             Metadata metadata = metadataFromInfoJson(temporaryDirectory)
                 .orElseGet(() -> fetchMetadataOrDefault(target));
@@ -150,7 +159,7 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
         Optional<ResolvedTikTokVideo> sssTikResult = resolveWithSssTik(target);
 
         if (sssTikResult.isPresent()) {
-            return sssTikResult;
+            return Optional.empty();
         }
 
         Path cookieFile = createTemporaryCookieFile();
@@ -178,6 +187,10 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
                 if (attempt < MAX_MEDIA_DOWNLOAD_ATTEMPTS && isRetryableTikTokError(result.stderr())) {
                     LOGGER.warn("TikTok returned a temporary extractor error while resolving media; retrying");
                     continue;
+                }
+
+                if (isRetryableTikTokError(result.stderr())) {
+                    return Optional.empty();
                 }
 
                 throw new UserFacingException(cleanYtDlpError(result.stderr()));
@@ -233,7 +246,8 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
             }
 
             return sssTikVideoUrl(response.body()).map(videoUrl -> new ResolvedTikTokVideo(
-                "TikTok video", sssTikText(SSSTIK_AUTHOR_PATTERN, response.body()).orElse(null), null,
+                sssTikText(SSSTIK_TITLE_PATTERN, response.body()).orElse("TikTok video"),
+                sssTikText(SSSTIK_AUTHOR_PATTERN, response.body()).orElse(null), null,
                 sourceVideoId(target.ytDlpUrl()), null, sssTikCount(SSSTIK_LIKE_COUNT_PATTERN, response.body()),
                 sssTikCount(SSSTIK_COMMENT_COUNT_PATTERN, response.body()), videoUrl,
                 sssTikThumbnailUrl(response.body()).orElse(null), null, null
@@ -282,7 +296,12 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
 
     private static Optional<String> sssTikText(Pattern pattern, String responseBody) {
         var matcher = pattern.matcher(responseBody);
-        return matcher.find() ? Optional.of(matcher.group(1).trim()) : Optional.empty();
+        if (!matcher.find()) {
+            return Optional.empty();
+        }
+
+        String text = matcher.group(1).replaceAll("<[^>]+>", "").trim();
+        return text.isBlank() ? Optional.empty() : Optional.of(text);
     }
 
     private static Long sssTikCount(Pattern pattern, String responseBody) {
