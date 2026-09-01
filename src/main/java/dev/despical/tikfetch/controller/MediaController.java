@@ -323,7 +323,9 @@ public class MediaController {
             || host.endsWith(".tiktokcdn-us.com")
             || host.endsWith(".tiktokv.com")
             || host.endsWith(".byteoversea.com")
-            || host.endsWith(".tiktok.com");
+            || host.endsWith(".tiktok.com")
+            || host.equals("tikcdn.io")
+            || host.endsWith(".tikcdn.io");
 
         if (!"https".equalsIgnoreCase(uri.getScheme()) || !allowedHost) {
             throw new UserFacingException("The temporary media host is not trusted.");

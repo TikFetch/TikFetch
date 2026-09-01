@@ -48,4 +48,11 @@ class YtDlpTikTokDownloadServiceTest {
             "<a href=\"https://example.com/video.mp4\" class=\"without_watermark\">Download</a>"
         )).isEmpty();
     }
+
+    @Test
+    void extractsTheSssTikThumbnailHost() {
+        assertThat(YtDlpTikTokDownloadService.sssTikThumbnailUrl(
+            "<style>.preview { background-image: url(https://tikcdn.io/ssstik/p/preview.jpg?st=token&amp;e=123); }</style>"
+        )).contains("https://tikcdn.io/ssstik/p/preview.jpg?st=token&e=123");
+    }
 }

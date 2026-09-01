@@ -76,6 +76,11 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
     private static final Pattern JSON_STRING_PATTERN = Pattern.compile("\"((?:\\\\.|[^\"\\\\])*)\"");
     private static final Pattern SSSTIK_TOKEN_PATTERN = Pattern.compile("s_tt\\s*=\\s*'([^']+)'");
     private static final Pattern SSSTIK_VIDEO_URL_PATTERN = Pattern.compile("<a\\s+href=\"([^\"]+)\"[^>]*\\bwithout_watermark\\b", Pattern.CASE_INSENSITIVE);
+    private static final Pattern SSSTIK_THUMBNAIL_URL_PATTERN = Pattern.compile("background-image:\\s*url\\((https://[^)]+)\\)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern SSSTIK_AUTHOR_PATTERN = Pattern.compile("<h2>\\s*([^<]+?)\\s*</h2>", Pattern.CASE_INSENSITIVE);
+    private static final Pattern SSSTIK_LIKE_COUNT_PATTERN = Pattern.compile("feather-thumbs-up.*?</svg>\\s*<div>\\s*([^<]+?)\\s*</div>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private static final Pattern SSSTIK_COMMENT_COUNT_PATTERN = Pattern.compile("feather-message-square.*?</svg>\\s*<div>\\s*([^<]+?)\\s*</div>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private static final Pattern COMPACT_COUNT_PATTERN = Pattern.compile("([0-9]+(?:[.,][0-9]+)?)\\s*([KM])?", Pattern.CASE_INSENSITIVE);
     private static final Pattern TIKTOK_VIDEO_ID_PATTERN = Pattern.compile("/video/(\\d+)");
 
     private final AppProperties properties;
@@ -228,8 +233,10 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
             }
 
             return sssTikVideoUrl(response.body()).map(videoUrl -> new ResolvedTikTokVideo(
-                "TikTok video", null, null, sourceVideoId(target.ytDlpUrl()), null, null, null,
-                videoUrl, null, null, null
+                "TikTok video", sssTikText(SSSTIK_AUTHOR_PATTERN, response.body()).orElse(null), null,
+                sourceVideoId(target.ytDlpUrl()), null, sssTikCount(SSSTIK_LIKE_COUNT_PATTERN, response.body()),
+                sssTikCount(SSSTIK_COMMENT_COUNT_PATTERN, response.body()), videoUrl,
+                sssTikThumbnailUrl(response.body()).orElse(null), null, null
             ));
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
@@ -241,11 +248,19 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
     }
 
     static Optional<String> sssTikVideoUrl(String responseBody) {
+        return sssTikUrl(responseBody, SSSTIK_VIDEO_URL_PATTERN);
+    }
+
+    static Optional<String> sssTikThumbnailUrl(String responseBody) {
+        return sssTikUrl(responseBody, SSSTIK_THUMBNAIL_URL_PATTERN);
+    }
+
+    private static Optional<String> sssTikUrl(String responseBody, Pattern urlPattern) {
         if (responseBody == null || responseBody.isBlank()) {
             return Optional.empty();
         }
 
-        var matcher = SSSTIK_VIDEO_URL_PATTERN.matcher(responseBody);
+        var matcher = urlPattern.matcher(responseBody);
         if (!matcher.find()) {
             return Optional.empty();
         }
@@ -262,6 +277,34 @@ public class YtDlpTikTokDownloadService implements TikTokDownloadService {
             return Optional.of(uri.toString());
         } catch (IllegalArgumentException exception) {
             return Optional.empty();
+        }
+    }
+
+    private static Optional<String> sssTikText(Pattern pattern, String responseBody) {
+        var matcher = pattern.matcher(responseBody);
+        return matcher.find() ? Optional.of(matcher.group(1).trim()) : Optional.empty();
+    }
+
+    private static Long sssTikCount(Pattern pattern, String responseBody) {
+        Optional<String> value = sssTikText(pattern, responseBody);
+        if (value.isEmpty()) {
+            return null;
+        }
+
+        var matcher = COMPACT_COUNT_PATTERN.matcher(value.get());
+        if (!matcher.find()) {
+            return null;
+        }
+
+        try {
+            double amount = Double.parseDouble(matcher.group(1).replace(',', '.'));
+            String suffix = matcher.group(2);
+            if (suffix != null) {
+                amount *= "M".equalsIgnoreCase(suffix) ? 1_000_000 : 1_000;
+            }
+            return Math.round(amount);
+        } catch (NumberFormatException exception) {
+            return null;
         }
     }
 
