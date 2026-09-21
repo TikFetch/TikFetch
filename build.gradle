@@ -62,7 +62,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-mysql'
     implementation 'com.mysql:mysql-connector-j'
-    implementation 'com.bucket4j:bucket4j_jdk17-core:8.19.0'
+    implementation 'com.bucket4j:bucket4j_jdk17-core:8.20.0'
     implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
     implementation 'com.yubico:webauthn-server-core:2.9.0'
 
