@@ -20,6 +20,7 @@ package dev.despical.tikfetch.controller;
 
 import dev.despical.tikfetch.entity.DownloadStatus;
 import dev.despical.tikfetch.exception.UserFacingException;
+import dev.despical.tikfetch.service.CardThumbnailService;
 import dev.despical.tikfetch.repository.DownloadedMediaItemRepository;
 import dev.despical.tikfetch.repository.DownloadedVideoRepository;
 import dev.despical.tikfetch.service.download.RemoteMediaSessionStore;
@@ -27,6 +28,7 @@ import dev.despical.tikfetch.storage.LocalFileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
@@ -72,6 +74,7 @@ public class MediaController {
     private final DownloadedVideoRepository videoRepository;
     private final DownloadedMediaItemRepository mediaItemRepository;
     private final LocalFileStorageService storageService;
+    private final CardThumbnailService cardThumbnailService;
     private final RemoteMediaSessionStore remoteMediaSessionStore;
     private final HttpClient remoteHttpClient = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(15))
@@ -175,6 +178,32 @@ public class MediaController {
             .cacheControl(PUBLIC_MEDIA_CACHE)
             .contentType(mediaType)
             .body(resource);
+    }
+
+    @GetMapping("/card-thumbnails/{id}")
+    public ResponseEntity<Resource> cardThumbnail(@PathVariable Long id) {
+        var video = videoRepository.findById(id)
+            .filter(this::isAvailable)
+            .filter(item -> item.getThumbnailPath() != null || item.getRemoteThumbnailUrl() != null)
+            .orElseThrow(() -> new UserFacingException("Thumbnail not found."));
+
+        if (video.getThumbnailPath() == null) {
+            return proxyRemoteMedia(video.getRemoteThumbnailUrl(), id, false, null, MediaType.IMAGE_JPEG);
+        }
+
+        Resource original = storageService.loadAsResource(video.getThumbnailPath());
+        var card = cardThumbnailService.cardThumbnail(video.getThumbnailPath());
+        if (card.isPresent()) {
+            return ResponseEntity.ok()
+                .cacheControl(PUBLIC_MEDIA_CACHE)
+                .contentType(MediaType.IMAGE_JPEG)
+                .body(new ByteArrayResource(card.get()));
+        }
+
+        return ResponseEntity.ok()
+            .cacheControl(PUBLIC_MEDIA_CACHE)
+            .contentType(MediaTypeFactory.getMediaType(original).orElse(MediaType.IMAGE_JPEG))
+            .body(original);
     }
 
     @GetMapping("/gallery/{id}/{position}")

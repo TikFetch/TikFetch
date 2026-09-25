@@ -14,6 +14,7 @@ import dev.despical.tikfetch.entity.DownloadStatus;
 import dev.despical.tikfetch.entity.DownloadedVideo;
 import dev.despical.tikfetch.repository.DownloadedMediaItemRepository;
 import dev.despical.tikfetch.repository.DownloadedVideoRepository;
+import dev.despical.tikfetch.service.CardThumbnailService;
 import dev.despical.tikfetch.service.download.RemoteMediaSessionStore;
 import dev.despical.tikfetch.storage.LocalFileStorageService;
 
@@ -52,7 +53,8 @@ class MediaControllerTest {
         when(storageService.loadAsResource(video.getVideoPath()))
             .thenReturn(new ByteArrayResource(new byte[] {1}));
 
-        var controller = new MediaController(videoRepository, mediaRepository, storageService, remoteMediaSessionStore);
+        var controller = new MediaController(videoRepository, mediaRepository, storageService,
+            mock(CardThumbnailService.class), remoteMediaSessionStore);
         var response = controller.stream(49L, null, null);
 
         assertThat(response.getHeaders().getFirst(HttpHeaders.CACHE_CONTROL)).isEqualTo(
