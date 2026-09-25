@@ -4,6 +4,7 @@
     th:with="appName=${app != null ? app.name : 'TikFetch'}, pageTitle=${title != null && !title.isBlank() ? title : appName}, description='Download TikTok videos, photo posts, galleries, and MP3 audio without watermark or ads. Paste a public TikTok link and save media with TikFetch.'">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#00c2ff">
     <title th:text="${pageTitle == appName ? appName : pageTitle + ' | ' + appName}">TikFetch</title>
     <meta name="description" th:content="${description}">
     <meta name="robots" th:content="${robotsContent}">
@@ -37,7 +38,10 @@
             ]
         }
     </script>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/favicon-64.png" type="image/png" sizes="64x64">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+    <link rel="manifest" href="/site.webmanifest">
     <link rel="stylesheet" href="/dist/assets/app.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-HNMKGXGGXD"></script>
     <script>

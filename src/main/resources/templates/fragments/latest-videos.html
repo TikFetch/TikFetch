@@ -18,6 +18,7 @@
             <a th:href="@{/downloads/{id}(id=${video.id})}" class="video-card-media aspect-video bg-slate-100"
                th:attr="aria-label=${video.image} ? 'View photo details' : 'View video details'">
                 <img th:if="${video.thumbnailUrl != null}" th:src="${video.thumbnailUrl}" alt=""
+                     loading="lazy" decoding="async" fetchpriority="low" width="640" height="360"
                      class="h-full w-full object-cover">
                 <div th:if="${video.thumbnailUrl == null}"
                      class="flex h-full items-center justify-center text-sm text-slate-500">No thumbnail
